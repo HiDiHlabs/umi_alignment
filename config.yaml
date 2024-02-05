@@ -1,0 +1,5 @@
+
+use-conda: true
+jobs: 10
+# Define the default resources for SLURM jobs
+default-resources: ["--partition=compute", "--exclude=eils-compute002","--time=12:00:00", "--mem=8G", "--cpus-per-task=1"]
