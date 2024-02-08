@@ -9,6 +9,7 @@ default-resources:
     "--mem=8G",
     "--cpus-per-task=1",
   ]
+
 genome_human: /applications/otp/reference-genomes/bwa06_1KGRef_PhiX/hs37d5_PhiX.fa
 
 NEBNext-FFPE-DNA-Library-Prep-Kit_R1:

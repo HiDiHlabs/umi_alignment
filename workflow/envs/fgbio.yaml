@@ -1,0 +1,7 @@
+name: cutadapt
+channels:
+  - bioconda
+  - conda-forge
+  - defaults
+dependencies:
+  - fgbio=2.1.0

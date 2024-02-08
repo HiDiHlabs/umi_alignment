@@ -1,9 +1,8 @@
-name: picard
+name: sambamba
 channels:
   - conda-forge
   - bioconda
   - defaults
   - sahays
 dependencies:
-  - samtools=1.18
-  - picard=3.1.1
+  - sambamba=1.0
