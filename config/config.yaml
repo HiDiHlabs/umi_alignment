@@ -1,0 +1,38 @@
+use-conda: true
+jobs: 10
+# Define the default resources for SLURM jobs
+default-resources:
+  [
+    "--partition=compute",
+    "--exclude=eils-compute002",
+    "--time=12:00:00",
+    "--mem=8G",
+    "--cpus-per-task=1",
+  ]
+genome_human: /applications/otp/reference-genomes/bwa06_1KGRef_PhiX/hs37d5_PhiX.fa
+
+NEBNext-FFPE-DNA-Library-Prep-Kit_R1:
+  [
+    "AGATCGGAAGAGCACACGTCTGAACTCCAGTCA",
+    "AGATCGGAAGAGCACACGTCTGAAC",
+    "TGGAATTCTCGGGTGCCAAGG",
+    "AGATCGGAAGAGCACACGTCT",
+    "CTGTCTCTTATACACATCT",
+    "AGATGTGTATAAGAGACAG",
+  ]
+
+NEBNext-FFPE-DNA-Library-Prep-Kit_R3:
+  [
+    "AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT",
+    "AGATCGGAAGAGCGTCGTGTAGGGA",
+    "TGGAATTCTCGGGTGCCAAGG",
+    "AGATCGGAAGAGCACACGTCT",
+    "CTGTCTCTTATACACATCT",
+    "AGATGTGTATAAGAGACAG",
+  ]
+
+metadata: /dh-projects/richter_transformation/scratch/input_folder/bare_min_meta_data_sheet.csv
+
+work_dir: /dh-projects/richter_transformation/scratch/output
+
+sample: S1

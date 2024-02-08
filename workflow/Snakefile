@@ -1,0 +1,253 @@
+import os
+import pandas as pd
+from pathlib import Path
+from itertools import product
+
+# print(config)
+wrkdir = Path(config['work_dir'])
+
+metadata = pd.read_csv(config['metadata'])
+metadata = metadata[metadata['SAMPLE_NAME']==config['sample']]
+
+# creating file links so as to get a proper directory structure
+
+fastq_dir = wrkdir / 'fastq'
+os.makedirs(fastq_dir, exist_ok=True)
+
+
+for index, row in metadata.iterrows():
+    fastq_file=Path(row['FASTQ_FILE'])
+    suffix='fastq'
+    if '.gz' in row['FASTQ_FILE']:
+        suffix+='.gz'
+    # FILES_BEFORE_MERGEa.append()
+    output_file=fastq_dir / row['RUN_ID'] / (row['SAMPLE_NAME']+'_'+row['READ']+'_'+row['LANE_NO']+'.'+suffix) 
+    os.makedirs(fastq_dir / row['RUN_ID'], exist_ok=True)
+    if os.path.exists(output_file):
+        os.remove(output_file)
+    os.symlink(fastq_file, output_file)
+    
+# populate the adapter sequences
+
+lib_prep_kit = metadata['LIB_PREP_KIT'].tolist()[0]
+adapter_seq_r1 = config[lib_prep_kit+'_R1']
+adapter_seq_r3 = config[lib_prep_kit+'_R3']
+
+# populate the lane wildcard
+
+LANE=metadata['LANE_NO'].unique().tolist()
+RUN_ID=metadata['RUN_ID'].unique().tolist()
+
+def filter_combinator(combinator, allow_list):
+    def filtered_combinator(args, **kwargs):
+        for wc_comb in combinator(*args, **kwargs):
+            if wc_comb in allow_list:
+                yield wc_comb
+        return filtered_combinator
+
+allow_list = set()
+for run_id in RUN_ID:
+    for lane in metadata[metadata.RUN_ID==run_id]['LANE_NO'].unique().tolist():
+        allow_list.add(frozenset({("run_id", run_id), ("lane", lane)}))
+
+
+print(allow_list)
+
+
+
+rule all:
+    input:
+        expand(wrkdir / 'metrics' / '{sample}.mosdepth.global.dist.txt',sample=config['sample']),
+        expand(wrkdir / "metrics" / '{sample}.flagstat' , sample=config['sample']),
+        expand(wrkdir / "metrics" / "{sample}_insert_size_metrics.txt",sample=config['sample']),
+        expand(wrkdir / "metrics" / "{sample}_insert_size.pdf",sample=config['sample']),
+        expand(wrkdir / 'metrics'/  '{sample}.mosdepth.summary.txt',sample=config['sample'])
+
+genome = config['genome_human'] # this is a temporary fix, will need to integrate different genomes at a later stage
+
+
+# if metadata['SPECIES'].tolist()[0] == 'HUMAN':
+#     genome = config['genome_mouse']
+filtered_product = filter_combinator(product, allow_list)
+
+# rule all:
+#     input:
+#         expand(wrkdir / "alignments" / '{run_id}'/ '{sample}_aln_{lane}_umi_annot.bam', run_id=RUN_ID, sample=config['sample'], lane=LANE),
+#         # adapt_3=wrkdir / '{sample}' / 'cutadapt' / 'adapt_3.fastq',
+
+
+rule create_adapter_fastq:
+    params:
+        adapt_1=adapter_seq_r1,
+        adapt_3=adapter_seq_r3
+    output:
+        adapt_1=temp(wrkdir / '{sample}' / 'cutadapt' / 'adapt_1.fastq'),
+        adapt_3=temp(wrkdir / '{sample}' / 'cutadapt' / 'adapt_3.fastq'),
+    threads: 1
+    resources:
+        mem_mb=1000,
+        runtime=20,
+        nodes=1
+    run:
+        with open(output.adapt_1, 'w') as handle:
+            count=1
+            for i in params.adapt_1:
+                handle.write('>adapter_'+str(count)+'\n')
+                handle.write(i+'\n')
+                count+=1
+                
+        with open(output.adapt_3, 'w') as handle:
+            count=1
+            for i in params.adapt_3:
+                handle.write('>adapter_'+str(count)+'\n')
+                handle.write(i+'\n')
+                count+=1
+                
+        
+        
+rule cutadapt:
+    input:
+        adapt_1=wrkdir / '{sample}' / 'cutadapt' / 'adapt_1.fastq',
+        adapt_3=wrkdir / '{sample}' / 'cutadapt' / 'adapt_3.fastq',
+        fastq_r1=wrkdir / 'fastq' / '{run_id}' / '{sample}_R1_{lane}.fastq.gz',
+        fastq_r3=wrkdir / 'fastq' / '{run_id}' / '{sample}_R3_{lane}.fastq.gz',
+    output:
+        fastq_r1=temp(wrkdir / 'fastq' / '{run_id}' / 'cutadapt' / '{sample}_R1_{lane}_trim.fastq.gz'),
+        fastq_r3=temp(wrkdir / 'fastq' / '{run_id}' / 'cutadapt' / '{sample}_R3_{lane}_trim.fastq.gz'),
+
+    threads: 8
+    resources:
+        mem_mb=10000,
+        runtime=4*60,
+        nodes=1
+    conda:
+        "snakemake-richter"
+    shell: "cutadapt -j 8 -a file:{input.adapt_1} -A file:{input.adapt_3} -o {output.fastq_r1} -p {output.fastq_r3} {input.fastq_r1} {input.fastq_r3}"
+
+
+
+rule bwa_map:
+    input:
+        genome=genome,
+        fastq_r1=temp(wrkdir / 'fastq' / '{run_id}' / 'cutadapt' / '{sample}_R1_{lane}_trim.fastq.gz'),
+        fastq_r3=temp(wrkdir / 'fastq' / '{run_id}' / 'cutadapt' / '{sample}_R3_{lane}_trim.fastq.gz'),
+    output:
+        temp(wrkdir / "alignments" / '{run_id}'/ '{sample}_aln_{lane}.bam')
+    threads: 8
+    resources:
+        mem_mb=10000,
+        runtime=24*60,
+        nodes=1
+    conda:
+        "snakemake-richter"
+    shell: "bwa mem -t {threads} -T 0 {input.genome} {input.fastq_r1} {input.fastq_r3} | samtools view -b -o {output}"
+
+rule fgbio:
+    input:
+        alignment=wrkdir / "alignments" / '{run_id}'/ '{sample}_aln_{lane}.bam',
+        fastq_r2=wrkdir / 'fastq' / '{run_id}' / '{sample}_R2_{lane}.fastq.gz',
+    output:
+        temp(wrkdir / "alignments" / '{run_id}'/ '{sample}_aln_{lane}_umi_annot.bam')
+    threads: 1
+    resources:
+        mem_mb=60000,
+        runtime=4*60,
+        nodes=1
+    conda:
+        "snakemake-richter"
+    shell: "fgbio AnnotateBamWithUmis -i {input.alignment} -f {input.fastq_r2} -o {output} -t RX -q UQ -s true"
+
+rule merge:
+    input:
+        expand(wrkdir / "alignments" / '{run_id}'/ '{sample}_aln_{lane}_umi_annot.bam', run_id=RUN_ID, sample=config['sample'], lane=LANE),
+    output:
+        temp(wrkdir / "alignments" / '{sample}_merged_aln_umi_annot.bam'), 
+    threads: 8
+    resources:
+        mem_mb=10000,
+        runtime=24*60,
+        nodes=1
+    conda:
+        "snakemake-richter"
+    shell: "samtools merge -f {output} {input}"
+    
+rule sort_index:
+    input:
+        wrkdir / "alignments" / '{sample}_merged_aln_umi_annot.bam',  
+    output:
+        sort_bam=temp(wrkdir / "alignments" / '{sample}_merged_aln_umi_annot_sorted.bam'),
+        sort_bai=temp(wrkdir / "alignments" / "{sample}_merged_aln_umi_annot_sorted.bam.bai")
+    threads: 8
+    resources:
+        mem_mb=10000,
+        runtime=4*60,
+        nodes=1
+    conda:
+        "snakemake-richter"
+    shell: "samtools sort -o {output.sort_bam} -O bam -@ {threads} {input};samtools index -b {output.sort_bam} {output.sort_bai}"
+
+rule duplicates:
+    input:
+        wrkdir / "alignments" / '{sample}_merged_aln_umi_annot_sorted.bam',
+    output:
+        bam = wrkdir / "alignments" / '{sample}_merged_aln_umi_annot_sorted_dedup.bam',
+        bai = wrkdir / "alignments" / '{sample}_merged_aln_umi_annot_sorted_dedup.bam.bai',
+        metric = wrkdir / "metrics" / '{sample}_marked_dup_metrics.txt'
+    conda:
+        "snakemake-richter"
+    threads: 8
+    resources:
+        mem_mb=60000,
+        runtime=24*60,
+        nodes=1
+    shell: "picard -Xmx60G MarkDuplicates -I {input} -O {output.bam} -M {output.metric} --BARCODE_TAG RX --SORTING_COLLECTION_SIZE_RATIO 0.1;samtools index -b {output.bam} {output.bai}"
+
+
+
+rule flagstatt:
+    input:
+        bam= wrkdir / "alignments" / '{sample}_merged_aln_umi_annot_sorted_dedup.bam',
+    output:
+        wrkdir / "metrics" / "{sample}.flagstat"
+    conda:
+        "snakemake-richter"
+    threads: 1
+    resources:
+        mem_mb=10000,
+        runtime=24*60,
+        nodes=1
+    shell: "sambamba flagstat {input.bam} > {output}"
+    
+        
+rule mosdepth:
+    input:
+        bam = wrkdir / "alignments" / '{sample}_merged_aln_umi_annot_sorted_dedup.bam',
+    params:
+        prefix=str(wrkdir / 'metrics'/ '{sample}' )
+    output:
+        out_1=wrkdir / 'metrics' / '{sample}.mosdepth.global.dist.txt',
+        out_2=wrkdir / 'metrics'/  '{sample}.mosdepth.summary.txt'
+    threads: 1
+    resources:
+        mem_mb=10000,
+        runtime=24*60,
+        nodes=1
+    conda:
+        "snakemake-richter"
+        
+    shell: "mosdepth -n {params.prefix} {input.bam}"
+
+rule InsertSize:
+    input:
+        bam= wrkdir / "alignments" / '{sample}_merged_aln_umi_annot_sorted_dedup.bam',
+    output:
+        size_metric=wrkdir / "metrics" / "{sample}_insert_size_metrics.txt",
+        pdf=wrkdir / "metrics" / "{sample}_insert_size.pdf"
+    conda:
+        "snakemake-richter"
+    threads: 1
+    resources:
+        mem_mb=60000,
+        runtime=24*60,
+        nodes=1
+    shell: "picard -Xmx60G CollectInsertSizeMetrics -I {input.bam} -O {output.size_metric} -H {output.pdf}"
