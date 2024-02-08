@@ -1,0 +1,8 @@
+name: bwa
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+  - sahays
+dependencies:
+  - bwa=0.7.17
