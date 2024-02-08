@@ -39,16 +39,17 @@ LANE=metadata['LANE_NO'].unique().tolist()
 RUN_ID=metadata['RUN_ID'].unique().tolist()
 
 def filter_combinator(combinator, allow_list):
-    def filtered_combinator(args, **kwargs):
+    def filtered_combinator(*args, **kwargs):
         for wc_comb in combinator(*args, **kwargs):
-            if wc_comb in allow_list:
+            if frozenset(wc_comb) in allow_list:
+                # print(wc_comb)
                 yield wc_comb
-        return filtered_combinator
+    return filtered_combinator
 
 allow_list = set()
 for run_id in RUN_ID:
     for lane in metadata[metadata.RUN_ID==run_id]['LANE_NO'].unique().tolist():
-        allow_list.add(frozenset({("run_id", run_id), ("lane", lane)}))
+        allow_list.add(frozenset({("run_id", run_id), ('sample', config['sample']), ("lane", lane)}))
 
 
 print(allow_list)
@@ -156,7 +157,7 @@ rule fgbio:
 
 rule merge:
     input:
-        expand(wrkdir / "alignments" / '{run_id}'/ '{sample}_aln_{lane}_umi_annot.bam', run_id=RUN_ID, sample=config['sample'], lane=LANE),
+        expand(wrkdir / "alignments" / '{run_id}'/ '{sample}_aln_{lane}_umi_annot.bam', filtered_product,  run_id=RUN_ID, sample=config['sample'], lane=LANE),
     output:
         temp(wrkdir / "alignments" / '{sample}_merged_aln_umi_annot.bam'), 
     threads: 8
