@@ -62,7 +62,8 @@ rule all:
         expand(wrkdir / "metrics" / '{sample}.flagstat' , sample=config['sample']),
         expand(wrkdir / "metrics" / "{sample}_insert_size_metrics.txt",sample=config['sample']),
         expand(wrkdir / "metrics" / "{sample}_insert_size.pdf",sample=config['sample']),
-        expand(wrkdir / 'metrics'/  '{sample}.mosdepth.summary.txt',sample=config['sample'])
+        expand(wrkdir / 'metrics'/  '{sample}.mosdepth.summary.txt',sample=config['sample']),
+        expand(wrkdir / "metrics" / "{sample}_coverage.png",sample=config['sample']),
 
 genome = config['genome_human'] # this is a temporary fix, will need to integrate different genomes at a later stage
 
@@ -249,3 +250,20 @@ rule InsertSize:
         runtime=24*60,
         nodes=1
     shell: "picard -Xmx60G CollectInsertSizeMetrics -I {input.bam} -O {output.size_metric} -H {output.pdf}"
+
+rule coveragePlot:
+    input:
+        bam = wrkdir / "alignments" / '{sample}_merged_aln_umi_annot_sorted_dedup.bam',
+    params:
+        binsize = 50
+    output:
+        plot= wrkdir / "metrics" / "{sample}_coverage.png"
+    threads: 20
+    resources:
+        mem_mb=10000,
+        runtime=24*60,
+        nodes=1
+    conda:
+        "envs/coveragePlot.yaml"
+    script:
+        "scripts/getCoveragePlot_snakemake.R"
