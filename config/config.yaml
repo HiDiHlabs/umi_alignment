@@ -1,16 +1,11 @@
-use-conda: true
-jobs: 10
 # Define the default resources for SLURM jobs
-default-resources:
-  [
-    "--partition=compute",
-    "--exclude=eils-compute002",
-    "--time=12:00:00",
-    "--mem=8G",
-    "--cpus-per-task=1",
-  ]
+
+# set-resources:
 
 genome_human: /applications/otp/reference-genomes/bwa06_1KGRef_PhiX/hs37d5_PhiX.fa
+dbsnp: /applications/otp/ngs_share_complete/assemblies/hg19_GRCh37_1000genomes/databases/dbSNP/dbSNP_147/00-All.vcf.gz
+genotypes_snp: /home/sahays/ALL.chrALL.SNP.phase3_integrated_v5a.20130502.genotypes.vcf
+genotypes_indel: /applications/otp/ngs_share_complete/assemblies/hg19_GRCh37_1000genomes/databases/1000genomes/ALL.chrALL.Indel.phase3_integrated_v5a.20130502.genotypes.vcf.gz
 
 NEBNext-FFPE-DNA-Library-Prep-Kit_R1:
   [
@@ -34,6 +29,8 @@ NEBNext-FFPE-DNA-Library-Prep-Kit_R3:
 
 metadata: /dh-projects/richter_transformation/scratch/input_folder/bare_min_meta_data_sheet.csv
 
-work_dir: /dh-projects/richter_transformation/scratch/output
+work_dir: /dh-projects/richter_transformation/scratch/output_S1
 
-sample: S7
+log_dir: /dh-projects/richter_transformation/scratch/output_S1/logs
+
+sample: S1
