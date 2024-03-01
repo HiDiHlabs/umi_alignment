@@ -17,7 +17,7 @@ if len(metadata['LIB_PREP_KIT'].unique())>1:
     raise ValueError('Multiple library prep kits detected. Please check yuor metadata file')
 
 adapter_seq_r1 = config['Adapter-Library-Prep-Kit_R1']
-adapter_seq_r3 = config['Apater-Library-Prep-Kit_R3']
+adapter_seq_r3 = config['Adapter-Library-Prep-Kit_R3']
 
 # populate the lane wildcard
 
@@ -242,7 +242,7 @@ rule fix_mate:
     threads:
         2
     resources:
-        mem_gb = 8
+        mem_mb = 8000,
         runtime=24*60,
         nodes=1
     conda:
@@ -268,7 +268,7 @@ rule group_reads:
     threads:
         2
     resources:
-        mem_gb = 8
+        mem_mb = 8000,
         runtime=24*60,
         nodes=1
     conda:
@@ -296,7 +296,7 @@ rule call_consensus_reads:
     threads:
         4
     resources:
-        mem_gb = 8
+        mem_mb = 4000,
         runtime=24*60,
         nodes=1
     conda:
@@ -327,7 +327,7 @@ rule filter_consensus_reads:
     threads:
         8
     resources:
-        mem_gb = 8
+        mem_mb = 8000,
         runtime=24*60,
         nodes=1
     conda:
@@ -355,7 +355,7 @@ rule realign:
         bai = temp(wrkdir / "alignments" / '{sample}.cons.filtered.realigned.bam.bai'),
     threads: 8
     resources:
-        mem_gb = 10
+        mem_mb = 4000,
         runtime=24*60,
         nodes=1
     conda:
@@ -389,14 +389,14 @@ rule duplicates:
     log:
         logdir / "picard/{sample}_dedup.log"
     resources:
-        mem_mb=60000,
+        mem_mb=8000,
         runtime=24*60,
         nodes=1
     shell: 
         " ( "
-        " picard -Xmx60G MarkDuplicates -I {input} "
+        " picard -Xmx8G MarkDuplicates -I {input} "
         " -O {output.bam} -M {output.metric} --BARCODE_TAG RX "
-        " --SORTING_COLLECTION_SIZE_RATIO 0.1 && "
+        " --SORTING_COLLECTION_SIZE_RATIO 0.01 && "
         " samtools index -b {output.bam} {output.bai} "
         " ) &> {log} "
 
