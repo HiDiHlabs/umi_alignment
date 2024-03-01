@@ -1,0 +1,38 @@
+# Define the default resources for SLURM jobs
+
+# set-resources:
+
+genome_human: /applications/otp/reference-genomes/bwa06_1KGRef_PhiX/hs37d5_PhiX.fa
+dbsnp: /applications/otp/ngs_share_complete/assemblies/hg19_GRCh37_1000genomes/databases/dbSNP/dbSNP_147/00-All.vcf.gz
+genotypes_snp: /home/sahays/ALL.chrALL.SNP.phase3_integrated_v5a.20130502.genotypes.vcf
+genotypes_indel: /applications/otp/ngs_share_complete/assemblies/hg19_GRCh37_1000genomes/databases/1000genomes/ALL.chrALL.Indel.phase3_integrated_v5a.20130502.genotypes.vcf.gz
+
+Adapter-Library-Prep-Kit_R1:
+  [
+    "AGATCGGAAGAGCACACGTCTGAACTCCAGTCA",
+    "AGATCGGAAGAGCACACGTCTGAAC",
+    "TGGAATTCTCGGGTGCCAAGG",
+    "AGATCGGAAGAGCACACGTCT",
+    "CTGTCTCTTATACACATCT",
+    "AGATGTGTATAAGAGACAG",
+  ]
+
+Apater-Library-Prep-Kit_R3:
+  [
+    "AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT",
+    "AGATCGGAAGAGCGTCGTGTAGGGA",
+    "TGGAATTCTCGGGTGCCAAGG",
+    "AGATCGGAAGAGCACACGTCT",
+    "CTGTCTCTTATACACATCT",
+    "AGATGTGTATAAGAGACAG",
+  ]
+
+metadata: bare_min_meta_data_sheet.csv
+
+work_dir: <path_to_output_folder>
+
+log_dir: <path_to_output_folder>/logs
+
+sample: S1
+
+pid: P1

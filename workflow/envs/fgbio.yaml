@@ -1,0 +1,9 @@
+name: cutadapt
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - fgbio=2.1.0
+  - samtools=1.18
+  - bwa=0.7.17
