@@ -1,4 +1,5 @@
 
+config/S*.yaml
 .snakemake/
 
 # Byte-compiled / optimized / DLL files
