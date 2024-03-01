@@ -14,16 +14,16 @@ To run the pipeline make sure you have a working snakemake installation in a con
 
 Please create a conda environment
 
-```mamba env create -f envs/wgs-umi-dedup-base.yaml```
+```mamba env create -f workflow/envs/wgs-umi-dedup-base.yaml```
 
 
 
 ## One step installation
 ### !!! Not Recommended !!!
 
-A one for all conda environment is available at `envs/wgs-umi-dedup-full.yaml`. Although this is not the recommended way to prepare the conda environment in which the pipeline is run. As each rule has its own conda enviroment and can be/should be run independent of the base environment
+A one for all conda environment is available at `workflow/envs/wgs-umi-dedup-full.yaml`. Although this is not the recommended way to prepare the conda environment in which the pipeline is run. As each rule has its own conda enviroment and can be/should be run independent of the base environment
 
-```mamba env create -f envs/wgs-umi-dedup-full.yaml```
+```mamba env create -f workflow/envs/wgs-umi-dedup-full.yaml```
 
 
 # Pipeline PREP
