@@ -7,4 +7,4 @@ reason: True
 keep-going: True
 printshellcmds: True
 rerun-incomplete: True
-restart-times: 3
+restart-times: 2
