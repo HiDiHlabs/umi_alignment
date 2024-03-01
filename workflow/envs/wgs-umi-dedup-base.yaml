@@ -1,0 +1,9 @@
+name: wgs-umi-dedup-base
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+  - sahays
+dependencies:
+  - snakemake=7.32.4
+  - pandas=2.1.3

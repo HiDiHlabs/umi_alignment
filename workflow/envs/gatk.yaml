@@ -1,8 +1,7 @@
-name: bwa
+name: gatk4
 channels:
   - conda-forge
   - bioconda
   - defaults
 dependencies:
-  - bwa=0.7.17
-  - samtools=1.18
+  - gatk4=4.3.0.0

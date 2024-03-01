@@ -7,7 +7,7 @@ dbsnp: /applications/otp/ngs_share_complete/assemblies/hg19_GRCh37_1000genomes/d
 genotypes_snp: /home/sahays/ALL.chrALL.SNP.phase3_integrated_v5a.20130502.genotypes.vcf
 genotypes_indel: /applications/otp/ngs_share_complete/assemblies/hg19_GRCh37_1000genomes/databases/1000genomes/ALL.chrALL.Indel.phase3_integrated_v5a.20130502.genotypes.vcf.gz
 
-NEBNext-FFPE-DNA-Library-Prep-Kit_R1:
+Adapter-Library-Prep-Kit_R1:
   [
     "AGATCGGAAGAGCACACGTCTGAACTCCAGTCA",
     "AGATCGGAAGAGCACACGTCTGAAC",
@@ -17,7 +17,7 @@ NEBNext-FFPE-DNA-Library-Prep-Kit_R1:
     "AGATGTGTATAAGAGACAG",
   ]
 
-NEBNext-FFPE-DNA-Library-Prep-Kit_R3:
+Apater-Library-Prep-Kit_R3:
   [
     "AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT",
     "AGATCGGAAGAGCGTCGTGTAGGGA",
@@ -27,10 +27,12 @@ NEBNext-FFPE-DNA-Library-Prep-Kit_R3:
     "AGATGTGTATAAGAGACAG",
   ]
 
-metadata: /dh-projects/richter_transformation/scratch/input_folder/bare_min_meta_data_sheet.csv
+metadata: bare_min_meta_data_sheet.csv
 
-work_dir: /dh-projects/richter_transformation/scratch/output_S1
+work_dir: <path_to_output_folder>
 
-log_dir: /dh-projects/richter_transformation/scratch/output_S1/logs
+log_dir: <path_to_output_folder>/logs
 
 sample: S1
+
+pid: P1
