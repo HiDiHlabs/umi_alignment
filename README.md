@@ -74,9 +74,7 @@ Once you have the config file and the metadata file setup
 
 First activate the conda environement containing base snakmake installation
 
-```
-mamba activate snakemake-wgs-umi-dedup-base
-```
+```mamba activate snakemake-wgs-umi-dedup-base```
 
 The run the pipeline with the following commands
 
@@ -93,14 +91,8 @@ The run the pipeline with the following commands
 #### !!! Not Recommended !!!
 First activate the conda environement containing base snakmake installation
 
-```
-mamba activate snakemake-wgs-full
-```
+```mamba activate snakemake-wgs-full```
 
 The run the pipeline with the following commands
 
-``` 
-cd <Path/To/Pipeline/dir>
-snakemake --slurm -j 10 --configfile config/config.yaml --profile profile 
-```
-
+``` snakemake --slurm -j 10 --configfile config/config.yaml --profile profile ```

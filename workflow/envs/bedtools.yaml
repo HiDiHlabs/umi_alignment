@@ -1,7 +1,7 @@
-name: cutadapt
+name: bedtools
 channels:
   - conda-forge
   - bioconda
   - defaults
 dependencies:
-  - python=3.11
+  - bedtools
