@@ -1,7 +1,7 @@
 rule baseRecalibrator:
     input:
         bam = wrkdir / "alignments" / '{sample}_dedup.bam',
-        dbsnp = config['dbsnp'],
+        dbsnp = dbsnp,
         genome = genome,
     output:
         table = wrkdir / "metrics" / '{sample}_recal_data.table',

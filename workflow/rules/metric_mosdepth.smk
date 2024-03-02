@@ -1,10 +1,10 @@
 # check if Mosdepth is run with in Exome/Panel or WGS mode
 
-if config['SeqType'] in ['Panel', 'WES']:
+if seq_type in ['Panel', 'WES']:
     rule mosdepth:
         input:
             bam = wrkdir / "alignments" / '{sample}_dedup.recall.sorted.bam',
-            capture_regions = config['capture_regions']
+            target_regions = target_regions
         params:
             prefix=str(wrkdir / 'metrics'/ '{sample}' )
         output:
@@ -21,7 +21,7 @@ if config['SeqType'] in ['Panel', 'WES']:
             logdir / "mosdepth/{sample}.log"
         message: "Running mosdepth for WES/panel data"
             
-        shell: "mosdepth --by {input.capture_regions} -n {params.prefix} {input.bam} &> {log}"
+        shell: "mosdepth --by {input.target_regions} -n {params.prefix} {input.bam} &> {log}"
 else:
     rule mosdepth:
         input:

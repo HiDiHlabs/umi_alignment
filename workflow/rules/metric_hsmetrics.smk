@@ -1,17 +1,39 @@
 # For some reason this conditional statement is needed to avoid a syntax error
 
-if config['SeqType'] in ['Panel', 'WES']:
+if seq_type in ['Panel', 'WES']:
+    
     rule createBait:
         input:
-            capture_regions = config['capture_regions'],
-            chrom_size = config['chrom_sizes'],
-            dict_genome = config['dict_genome']
+            target_regions = target_regions,
+            chrom_size = chrom_sizes,
         output:
             flank_bed= temp(wrkdir / 'metrics' / '{sample}_flank.bed'),
-            flank_intervals= temp(wrkdir / 'metrics' / '{sample}_flank.interval_list'),
-            target_intervals= temp(wrkdir / 'metrics' / '{sample}_target.interval_list'),
         conda:
             "../envs/bedtools.yaml"
+        threads: 1
+        resources:
+            mem_mb=4000,
+            runtime=24*60,
+            nodes=1
+        log:
+            logdir / "bedtools" / "{sample}_slop.log"
+        message:
+            "Bait regions not provided creating flanks"
+        shell: 
+            "("
+            " bedtools slop -b 100 -i {input.target_regions} -g {input.chrom_size} > {output.flank_bed} "
+            ") &> {log}"
+
+    rule Intervals:
+        input:
+            target_regions = target_regions,
+            bait_regions = bait_regions if "bait_regions" in config else wrkdir / 'metrics' / '{sample}_flank.bed',
+            dict_genome = dict_genome,
+        output:
+            bait_intervals= temp(wrkdir / 'metrics' / '{sample}_flank.interval_list'),
+            target_intervals= temp(wrkdir / 'metrics' / '{sample}_target.interval_list'),
+        conda:
+            "../envs/gatk.yaml"
         threads: 1
         resources:
             mem_mb=8000,
@@ -23,9 +45,8 @@ if config['SeqType'] in ['Panel', 'WES']:
             "Creating flank and target intervals for Panel and WES data"
         shell: 
             "("
-            " bedtools slop -b 100 -i {input.capture_regions} -g {input.chrom_size} > {output.flank_bed} "
-            " && gatk BedToIntervalList -I {output.flank_bed} -O {output.flank_intervals} -SD {input.dict_genome}"
-            " && gatk BedToIntervalList -I {input.capture_regions} -O {output.target_intervals} -SD {input.dict_genome}"
+            "gatk BedToIntervalList -I {input.bait_regions} -O {output.bait_intervals} -SD {input.dict_genome}"
+            " && gatk BedToIntervalList -I {input.target_regions} -O {output.target_intervals} -SD {input.dict_genome}"
             ") &> {log}"
 
     rule HSmetrics:

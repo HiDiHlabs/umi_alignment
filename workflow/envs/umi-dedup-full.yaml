@@ -26,7 +26,7 @@ dependencies:
   - r-ggplot2=3.4.4
   - sambamba=1.0
   - samtools=1.18
-  - snakemake=8.5.3
+  - snakemake=7.32.4
   - r-gsalib
   - r-reshape
   - r-gplots

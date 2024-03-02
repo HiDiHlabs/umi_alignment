@@ -1,19 +1,87 @@
+if "library_prep_kit" in config:
+    library_prep_kit = config['library_prep_kit']
+    if library_prep_kit=='':
+        library_prep_kit = 'Unknown'
+else:
+    library_prep_kit = 'Unknown'
 
-wrkdir = Path(config['work_dir'])
-logdir = Path(config['log_dir'])
+if "sample" not in config:
+    raise ValueError('Sample name not provided')
 
-metadata = pd.read_csv(config['metadata'])
-metadata = metadata[(metadata['SAMPLE_NAME']==config['sample']) & (metadata['PATIENT_ID']==config['pid'])]
+if "pid" not in config:
+    raise ValueError('Patient ID not provided')
 
-lib_prep_kit = metadata['LIB_PREP_KIT'].tolist()[0]
-if len(metadata['LIB_PREP_KIT'].unique())>1:
-    raise ValueError('Multiple library prep kits detected. Please check yuor metadata file')
+if "genome" not in config:
+    raise ValueError('Genome not provided')
+else:
+    genome = config['genome']
 
-adapter_seq_r1 = config['Adapter-Library-Prep-Kit_R1']
-adapter_seq_r3 = config['Adapter-Library-Prep-Kit_R3']
+if "work_dir" not in config:
+    raise ValueError('Work directory not provided')
+else:
+    wrkdir = Path(config['work_dir'])
 
+if "log_dir" not in config:
+    logdir = wrkdir / 'logs'
+else:
+    logdir = Path(config['log_dir'])
 
-genome = config['genome'] 
+if "trim_adapters" not in config:
+    config['trim_adapters'] = False
+
+if config['trim_adapters']:
+    if "Adapter_R1" not in config:
+        raise ValueError('Adapter sequence for R1 not provided')
+    else:
+        adapter_seq_r1 = config['Adapter_R1']
+    if "Adapter_R3" not in config:
+        raise ValueError('Adapter sequence for R3 not provided')
+    else:
+        adapter_seq_r3 = config['Adapter_R3']
+
+if "metadata" not in config:
+    raise ValueError('Metadata file not provided')
+else:
+    metadata = pd.read_csv(config['metadata'])
+    metadata = metadata[
+        (metadata['SAMPLE_NAME']==config['sample']) & 
+        (metadata['PATIENT_ID']==config['pid'])
+        ]
+    if metadata.shape[0]==0:
+        raise ValueError('No metadata found for the given sample and patient ID')
+
+if 'SeqType' not in config:
+    raise ValueError('Sequencing type not provided')
+else:
+    seq_type = config['SeqType']
+    if seq_type not in ['WGS', 'WES', 'Panel']:
+        raise ValueError('Invalid sequencing type provided')
+    if seq_type in ['WES', 'Panel']:
+        if "target_regions" not in config:
+            raise ValueError('Target regions not provided')
+        else:
+            target_regions = config['target_regions']
+
+        if "chrom_sizes" not in config:
+            raise ValueError('Chromosome sizes not provided')
+        else:
+            chrom_sizes = config['chrom_sizes']
+        if "dict_genome" not in config:
+            raise ValueError('Genome not provided')
+        else:
+            dict_genome = config['dict_genome']
+
+        if "bait_regions" not in config:
+            print('Bait regions not provided will be calculated from target regions')
+        else:
+            bait_regions = config['bait_regions']
+
+if "dbsnp" not in config:
+    raise ValueError('dbSNP file not provided')
+else:
+    dbsnp = config['dbsnp']
+        
+
 
 
 
@@ -35,14 +103,6 @@ allow_list = set()
 for run_id in RUN_ID:
     for lane in metadata[metadata.RUN_ID==run_id]['LANE_NO'].unique().tolist():
         allow_list.add(frozenset({("run_id", run_id), ('sample', config['sample']), ("lane", lane)}))
-
-if not config['trim_adapters']:
-    print('Adapter trimming is disabled')
-
-if config['SeqType'] in ['Panel', 'WES']:
-    print("WES/ Panel data detected. Will run HS metrics")
-    if not config['capture_regions']:
-        raise ValueError('Capture regions not provided')
 
 
 
@@ -67,7 +127,10 @@ rule create_links_files:
         "Creating links to fastq files"
     run:
         metadata = pd.read_csv(params.metadata)
-        metadata = metadata[metadata['SAMPLE_NAME']==config['sample']]
+        metadata = metadata[
+            (metadata['SAMPLE_NAME']==config['sample']) & 
+            (metadata['PATIENT_ID']==config['pid'])
+            ]
 
         for index, row in metadata.iterrows():
             fastq_file=Path(row['FASTQ_FILE'])

@@ -11,7 +11,7 @@ rule fastqbam:
     output:
         temp(wrkdir / "fastq" / '{run_id}'/ '{sample}_{lane}_unmapped.bam')
     params:
-        library=config['library_prep_kit']
+        library=library_prep_kit
     threads: 8
     resources:
         mem_mb=8000,
@@ -38,7 +38,7 @@ rule bwa_map:
     Aligning reads to the genome using BWA 
     """
     input:
-        genome=config['genome'],
+        genome=genome,
         bam = wrkdir / "fastq" / '{run_id}'/ '{sample}_{lane}_unmapped.bam'
     output:
         temp(wrkdir / "alignments" / '{run_id}'/ '{sample}_aln_{lane}.bam')
