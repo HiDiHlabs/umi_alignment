@@ -1,5 +1,8 @@
 
+config/S*.yaml
 .snakemake/
+Singularity/
+conda_envs/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

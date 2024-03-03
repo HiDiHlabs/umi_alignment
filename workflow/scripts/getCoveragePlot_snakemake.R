@@ -3,11 +3,16 @@ library(QDNAseq)
 library(future)
 library(ggplot2)
 
+log <- file(snakemake@log[[1]], open="wt")
+sink(log, type = c("output", "message"))
+
 future::plan("multisession", workers=snakemake@threads)
 
 input <- snakemake@input[['bam']]
 binSize<-snakemake@params[['binsize']]
 output<-snakemake@output[['plot']]
+
+
 
 # print(input)
 # print(binSize)
@@ -29,3 +34,4 @@ png(filename=output, width=3000, height=1000, res=300)
 plot(readCountsFiltered, ylim=c(10, 20))
 dev.off()
 
+sink()

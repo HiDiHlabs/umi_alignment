@@ -1,8 +1,7 @@
-name: picard
+name: bedtools
 channels:
   - conda-forge
   - bioconda
   - defaults
 dependencies:
-  - samtools=1.18
-  - picard=3.1.1
+  - bedtools
