@@ -3,6 +3,9 @@
 # set-resources:
 
 genome_human: /applications/otp/reference-genomes/bwa06_1KGRef_PhiX/hs37d5_PhiX.fa
+dict_genome: /applications/otp/reference-genomes/bwa06_1KGRef_PhiX/hs37d5_PhiX.dict
+chrom_sizes: /applications/otp/reference-genomes/bwa06_1KGRef_PhiX/stats/hg19_chrTotalLength.tsv
+
 dbsnp: /applications/otp/ngs_share_complete/assemblies/hg19_GRCh37_1000genomes/databases/dbSNP/dbSNP_147/00-All.vcf.gz
 genotypes_snp: /home/sahays/ALL.chrALL.SNP.phase3_integrated_v5a.20130502.genotypes.vcf
 genotypes_indel: /applications/otp/ngs_share_complete/assemblies/hg19_GRCh37_1000genomes/databases/1000genomes/ALL.chrALL.Indel.phase3_integrated_v5a.20130502.genotypes.vcf.gz
@@ -11,9 +14,6 @@ target_regions: <Path/to/target_regions/file.bed>
 
 bait_regions: <Path/to/bait_regions/file.bed>
 
-chrom_sizes: <Path/to/chrom_size/file.tsv>
-
-dict_genome: <Path/to/dict_genome/file.dict>
 
 
 Adapter-Library-Prep-Kit_R1:
@@ -38,7 +38,7 @@ Adapter-Library-Prep-Kit_R3:
 
 SeqType: <Panel|WGS|WES>
 
-library_pre_kit: <PrepKitName|Unknown>
+library_prep_kit: <PrepKitName|Unknown>
 
 trim_adapters: <True|False>
 
