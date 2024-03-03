@@ -5,9 +5,9 @@ rule fix_mate:
     This can cause problems in downstream analysis.
     """
     input:
-        bam = wrkdir / "alignments" / '{sample}_merged_umi_annot.bam',
+        bam =tmp dir / "alignments" / '{sample}_merged_umi_annot.bam',
     output:
-        bam = temp(wrkdir / "alignments" / '{sample}_mate_fix.bam'),
+        bam = temp(tmpdir / "alignments" / '{sample}_mate_fix.bam'),
     params:
         allowed_edits = 1,
     threads:
@@ -32,10 +32,10 @@ rule fix_mate:
         
 rule duplicates:
     input:
-        wrkdir / "alignments" / '{sample}.cons.filtered.realigned.bam',
+        tmpdir / "alignments" / '{sample}.cons.filtered.realigned.bam',
     output:
-        bam = wrkdir / "alignments" / '{sample}_dedup.bam',
-        bai = wrkdir / "alignments" / '{sample}_dedup.bam.bai',
+        bam = tmpdir / "alignments" / '{sample}_dedup.bam',
+        bai = tmpdir / "alignments" / '{sample}_dedup.bam.bai',
         metric = wrkdir / "metrics" / '{sample}_marked_dup_metrics.txt'
     conda:
         "../envs/gatk.yaml"

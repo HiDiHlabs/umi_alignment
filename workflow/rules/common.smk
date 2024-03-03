@@ -20,6 +20,11 @@ if "work_dir" not in config:
     raise ValueError('Work directory not provided')
 else:
     wrkdir = Path(config['work_dir'])
+    
+if "tmp_dir" not in config:
+    raise ValueError('Tempory Files directory not provided')
+else:
+    tmpdir = Path(config['tmp_dir'])
 
 if "log_dir" not in config:
     logdir = wrkdir / 'logs'
@@ -114,15 +119,15 @@ filtered_product = filter_combinator(product, allow_list)
 rule create_links_files:
     params:
         metadata=config['metadata'],
-        fastq_dir=wrkdir / 'fastq'
+        fastq_dir=tmpdir / 'fastq'
     resources:
         mem_mb=1000,
         runtime=20,
         nodes=1
     output:
-        fastq_r1=expand(wrkdir / 'fastq' / '{run_id}' / '{sample}_R1_{lane}.fastq.gz',filtered_product, run_id=RUN_ID, sample=config['sample'], lane=LANE),
-        fastq_r2=expand(wrkdir / 'fastq' / '{run_id}' / '{sample}_R2_{lane}.fastq.gz',filtered_product, run_id=RUN_ID, sample=config['sample'], lane=LANE),
-        fastq_r3=expand(wrkdir / 'fastq' / '{run_id}' / '{sample}_R3_{lane}.fastq.gz',filtered_product, run_id=RUN_ID, sample=config['sample'], lane=LANE)
+        fastq_r1=expand(tmpdir / 'fastq' / '{run_id}' / '{sample}_R1_{lane}.fastq.gz',filtered_product, run_id=RUN_ID, sample=config['sample'], lane=LANE),
+        fastq_r2=expand(tmpdir / 'fastq' / '{run_id}' / '{sample}_R2_{lane}.fastq.gz',filtered_product, run_id=RUN_ID, sample=config['sample'], lane=LANE),
+        fastq_r3=expand(tmpdir / 'fastq' / '{run_id}' / '{sample}_R3_{lane}.fastq.gz',filtered_product, run_id=RUN_ID, sample=config['sample'], lane=LANE)
     message:
         "Creating links to fastq files"
     run:
@@ -150,8 +155,8 @@ if config['trim_adapters']:
             adapt_1=adapter_seq_r1,
             adapt_3=adapter_seq_r3
         output:
-            adapt_1=temp(wrkdir / '{sample}' / 'cutadapt' / 'adapt_1.fastq'),
-            adapt_3=temp(wrkdir / '{sample}' / 'cutadapt' / 'adapt_3.fastq'),
+            adapt_1=temp(tmpdir / '{sample}' / 'cutadapt' / 'adapt_1.fastq'),
+            adapt_3=temp(tmpdir / '{sample}' / 'cutadapt' / 'adapt_3.fastq'),
         threads: 1
         resources:
             mem_mb=1000,

@@ -6,10 +6,10 @@ rule fastqbam:
     """
     input:
         genome=genome,
-        fastq_r1=wrkdir / 'fastq' / '{run_id}' / 'cutadapt' / '{sample}_R1_{lane}_trim.fastq.gz',
-        fastq_r3=wrkdir / 'fastq' / '{run_id}' / 'cutadapt' / '{sample}_R3_{lane}_trim.fastq.gz',
+        fastq_r1=tmpdir / 'fastq' / '{run_id}' / 'cutadapt' / '{sample}_R1_{lane}_trim.fastq.gz',
+        fastq_r3=tmpdir / 'fastq' / '{run_id}' / 'cutadapt' / '{sample}_R3_{lane}_trim.fastq.gz',
     output:
-        temp(wrkdir / "fastq" / '{run_id}'/ '{sample}_{lane}_unmapped.bam')
+        temp(tmpdir / "fastq" / '{run_id}'/ '{sample}_{lane}_unmapped.bam')
     params:
         library=library_prep_kit
     threads: 8
@@ -39,9 +39,9 @@ rule bwa_map:
     """
     input:
         genome=genome,
-        bam = wrkdir / "fastq" / '{run_id}'/ '{sample}_{lane}_unmapped.bam'
+        bam = tmpdir / "fastq" / '{run_id}'/ '{sample}_{lane}_unmapped.bam'
     output:
-        temp(wrkdir / "alignments" / '{run_id}'/ '{sample}_aln_{lane}.bam')
+        temp(tmpdir / "alignments" / '{run_id}'/ '{sample}_aln_{lane}.bam')
     threads: 8
     resources:
         mem_mb=10000,
@@ -68,9 +68,9 @@ rule merge:
     Merging bam files from different lanes/runs
     """
     input:
-        expand(wrkdir / "alignments" / '{run_id}'/ '{sample}_aln_{lane}_umi_annot.bam', filtered_product,  run_id=RUN_ID, sample=config['sample'], lane=LANE),
+        expand(tmpdir / "alignments" / '{run_id}'/ '{sample}_aln_{lane}_umi_annot.bam', filtered_product,  run_id=RUN_ID, sample=config['sample'], lane=LANE),
     output:
-        temp(wrkdir / "alignments" / '{sample}_merged_umi_annot.bam'), 
+        temp(tmpdir / "alignments" / '{sample}_merged_umi_annot.bam'), 
     threads: 8
     resources:
         mem_mb=8000,
@@ -90,11 +90,11 @@ rule realign:
     Second pass alignment using BWA once the consesnsus sequences called
     """
     input:
-        bam = wrkdir / "alignments" / '{sample}.cons.filtered.bam',
+        bam = tmpdir / "alignments" / '{sample}.cons.filtered.bam',
         ref = genome,
     output:
-        bam = temp(wrkdir / "alignments" / '{sample}.cons.filtered.realigned.bam'),
-        bai = temp(wrkdir / "alignments" / '{sample}.cons.filtered.realigned.bam.bai'),
+        bam = temp(tmpdir / "alignments" / '{sample}.cons.filtered.realigned.bam'),
+        bai = temp(tmpdir / "alignments" / '{sample}.cons.filtered.realigned.bam.bai'),
     threads: 8
     resources:
         mem_mb = 16000,

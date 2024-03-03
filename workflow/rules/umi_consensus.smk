@@ -1,9 +1,9 @@
 rule fgbio:
     input:
-        alignment=wrkdir / "alignments" / '{run_id}'/ '{sample}_aln_{lane}.bam',
-        fastq_r2=wrkdir / 'fastq' / '{run_id}' / '{sample}_R2_{lane}.fastq.gz',
+        alignment=tmpdir / "alignments" / '{run_id}'/ '{sample}_aln_{lane}.bam',
+        fastq_r2=tmpdir / 'fastq' / '{run_id}' / '{sample}_R2_{lane}.fastq.gz',
     output:
-        temp(wrkdir / "alignments" / '{run_id}'/ '{sample}_aln_{lane}_umi_annot.bam')
+        temp(tmpdir / "alignments" / '{run_id}'/ '{sample}_aln_{lane}_umi_annot.bam')
     threads: 1
     resources:
         mem_mb=8000,
@@ -20,10 +20,10 @@ rule fgbio:
     
 rule group_reads:
     input:
-        bam = wrkdir / "alignments" / '{sample}_mate_fix.bam',
+        bam = tmpdir / "alignments" / '{sample}_mate_fix.bam',
     output:
-        bam = temp(wrkdir / "alignments" / '{sample}_merged_aln_umi_annot_sorted_grouped.bam'),
-        stats = wrkdir / "metrics" / "{sample}.grouped-family-sizes.txt"
+        bam = temp(tmpdir / "alignments" / '{sample}_merged_aln_umi_annot_sorted_grouped.bam'),
+        stats = tmpdir / "metrics" / "{sample}.grouped-family-sizes.txt"
     params:
         allowed_edits = 1,
     threads:
@@ -49,9 +49,9 @@ rule group_reads:
 
 rule call_consensus_reads:
     input:
-        bam = wrkdir / "alignments" / '{sample}_merged_aln_umi_annot_sorted_grouped.bam',
+        bam = tmpdir / "alignments" / '{sample}_merged_aln_umi_annot_sorted_grouped.bam',
     output:
-        bam = temp(wrkdir / "alignments" / '{sample}.cons.unmapped.bam'),
+        bam = temp(tmpdir / "alignments" / '{sample}.cons.unmapped.bam'),
     params:
         min_reads = 3,
         min_base_qual = 20
@@ -78,10 +78,10 @@ rule call_consensus_reads:
 
 rule filter_consensus_reads:
     input:
-        bam = wrkdir / "alignments" / '{sample}.cons.unmapped.bam',
+        bam = tmpdir / "alignments" / '{sample}.cons.unmapped.bam',
         ref = genome,
     output:
-        bam = temp(wrkdir / "alignments" / '{sample}.cons.filtered.bam'),
+        bam = temp(tmpdir / "alignments" / '{sample}.cons.filtered.bam'),
 
     params:
         min_reads = 3,

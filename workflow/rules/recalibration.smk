@@ -1,11 +1,11 @@
 rule baseRecalibrator:
     input:
-        bam = wrkdir / "alignments" / '{sample}_dedup.bam',
+        bam = tmpdir / "alignments" / '{sample}_dedup.bam',
         dbsnp = dbsnp,
         genome = genome,
     output:
         table = wrkdir / "metrics" / '{sample}_recal_data.table',
-        bam = temp(wrkdir / "alignments" / '{sample}_dedup.recall.bam'),
+        bam = temp(tmpdir / "alignments" / '{sample}_dedup.recall.bam'),
         analyse_covariates = wrkdir / "metrics" / '{sample}_covariates.pdf'
     conda:
         "../envs/gatk.yaml"
@@ -31,7 +31,7 @@ rule baseRecalibrator:
 
 rule sort_index:
     input:
-        bam = wrkdir / "alignments" / '{sample}_dedup.recall.bam',
+        bam = tmpdir / "alignments" / '{sample}_dedup.recall.bam',
     output:
         bam = wrkdir / "alignments" / '{sample}_dedup.recall.sorted.bam',
         bai = wrkdir / "alignments" / '{sample}_dedup.recall.sorted.bam.bai'

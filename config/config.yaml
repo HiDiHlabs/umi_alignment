@@ -7,6 +7,15 @@ dbsnp: /applications/otp/ngs_share_complete/assemblies/hg19_GRCh37_1000genomes/d
 genotypes_snp: /home/sahays/ALL.chrALL.SNP.phase3_integrated_v5a.20130502.genotypes.vcf
 genotypes_indel: /applications/otp/ngs_share_complete/assemblies/hg19_GRCh37_1000genomes/databases/1000genomes/ALL.chrALL.Indel.phase3_integrated_v5a.20130502.genotypes.vcf.gz
 
+target_regions: <Path/to/target_regions/file.bed>
+
+bait_regions: <Path/to/bait_regions/file.bed>
+
+chrom_sizes: <Path/to/chrom_size/file.tsv>
+
+dict_genome: <Path/to/dict_genome/file.dict>
+
+
 Adapter-Library-Prep-Kit_R1:
   [
     "AGATCGGAAGAGCACACGTCTGAACTCCAGTCA",
@@ -27,9 +36,17 @@ Adapter-Library-Prep-Kit_R3:
     "AGATGTGTATAAGAGACAG",
   ]
 
-metadata: bare_min_meta_data_sheet.csv
+SeqType: <Panel|WGS|WES>
+
+library_pre_kit: <PrepKitName|Unknown>
+
+trim_adapters: <True|False>
+
+metadata: /abs/Path/to/bare_min_meta_data_sheet.csv
 
 work_dir: <path_to_output_folder>
+
+tmp_dir: <path_to_scratch_folder>
 
 log_dir: <path_to_output_folder>/logs
 

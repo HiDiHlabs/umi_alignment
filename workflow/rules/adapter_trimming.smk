@@ -3,13 +3,13 @@
 if config['trim_adapters']:
     rule cutadapt:
         input:
-            adapt_1=wrkdir / '{sample}' / 'cutadapt' / 'adapt_1.fastq',
-            adapt_3=wrkdir / '{sample}' / 'cutadapt' / 'adapt_3.fastq',
-            fastq_r1=wrkdir / 'fastq' / '{run_id}' / '{sample}_R1_{lane}.fastq.gz',
-            fastq_r3=wrkdir / 'fastq' / '{run_id}' / '{sample}_R3_{lane}.fastq.gz',
+            adapt_1=tmpdir / '{sample}' / 'cutadapt' / 'adapt_1.fastq',
+            adapt_3=tmpdir / '{sample}' / 'cutadapt' / 'adapt_3.fastq',
+            fastq_r1=tmpdir / 'fastq' / '{run_id}' / '{sample}_R1_{lane}.fastq.gz',
+            fastq_r3=tmpdir / 'fastq' / '{run_id}' / '{sample}_R3_{lane}.fastq.gz',
         output:
-            fastq_r1=temp(wrkdir / 'fastq' / '{run_id}' / 'cutadapt' / '{sample}_R1_{lane}_trim.fastq.gz'),
-            fastq_r3=temp(wrkdir / 'fastq' / '{run_id}' / 'cutadapt' / '{sample}_R3_{lane}_trim.fastq.gz'),
+            fastq_r1=temp(tmpdir / 'fastq' / '{run_id}' / 'cutadapt' / '{sample}_R1_{lane}_trim.fastq.gz'),
+            fastq_r3=temp(tmpdir / 'fastq' / '{run_id}' / 'cutadapt' / '{sample}_R3_{lane}_trim.fastq.gz'),
         log:
             logdir / "cutadapt/{run_id}_{sample}_R1_{lane}.log"  
         threads: 8
@@ -25,11 +25,11 @@ if config['trim_adapters']:
 else:
     rule cutadapt:
         input:
-            fastq_r1=wrkdir / 'fastq' / '{run_id}' / '{sample}_R1_{lane}.fastq.gz',
-            fastq_r3=wrkdir / 'fastq' / '{run_id}' / '{sample}_R3_{lane}.fastq.gz',
+            fastq_r1=tmpdir / 'fastq' / '{run_id}' / '{sample}_R1_{lane}.fastq.gz',
+            fastq_r3=tmpdir / 'fastq' / '{run_id}' / '{sample}_R3_{lane}.fastq.gz',
         output:
-            fastq_r1=temp(wrkdir / 'fastq' / '{run_id}' / 'cutadapt' / '{sample}_R1_{lane}_trim.fastq.gz'),
-            fastq_r3=temp(wrkdir / 'fastq' / '{run_id}' / 'cutadapt' / '{sample}_R3_{lane}_trim.fastq.gz'),
+            fastq_r1=temp(tmpdir / 'fastq' / '{run_id}' / 'cutadapt' / '{sample}_R1_{lane}_trim.fastq.gz'),
+            fastq_r3=temp(tmpdir / 'fastq' / '{run_id}' / 'cutadapt' / '{sample}_R3_{lane}_trim.fastq.gz'),
         log:
             logdir / "cutadapt/{run_id}_{sample}_R1_{lane}.log"  
         threads: 8
