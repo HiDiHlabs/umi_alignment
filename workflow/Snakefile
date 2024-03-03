@@ -3,6 +3,8 @@ import pandas as pd
 from pathlib import Path
 from itertools import product
 
+container: "docker://condaforge/mambaforge"
+
 include: "rules/common.smk" #done
 include: "rules/adapter_trimming.smk" #done
 include: "rules/alignment.smk" #done
@@ -17,10 +19,13 @@ include: "rules/recalibration.smk" #done
 
 
 
+
 rule all:
     input:
         expand(wrkdir / "alignments" / '{sample}_dedup.recall.sorted.bam',sample=config['sample']),
         expand(wrkdir / "alignments" / '{sample}_dedup.recall.sorted.bam.bai',sample=config['sample']),
+        expand(wrkdir / "alignments" / '{sample}_dedup.bam',sample=config['sample']),
+        expand(wrkdir / "alignments" / '{sample}_dedup.bam.bai',sample=config['sample']),
         expand(wrkdir / 'metrics' / '{sample}.mosdepth.global.dist.txt',sample=config['sample']),
         expand(wrkdir / "metrics" / '{sample}.flagstat' , sample=config['sample']),
         expand(wrkdir / "metrics" / "{sample}_insert_size_metrics.txt",sample=config['sample']),

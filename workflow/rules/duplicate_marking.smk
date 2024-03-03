@@ -50,7 +50,7 @@ rule duplicates:
         "Marking duplicates on consensus reads."
     shell: 
         " ( "
-        " gatk MarkDuplicates -I {input} "
+        " gatk --java-options '-Xmx{resources.mem_mb}m' MarkDuplicates -I {input} "
         " -O {output.bam} -M {output.metric} --BARCODE_TAG RX "
         " --SORTING_COLLECTION_SIZE_RATIO 0.01 && "
         " samtools index -b {output.bam} {output.bai} "

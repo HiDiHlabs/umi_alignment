@@ -7,7 +7,8 @@ We require the sequencing is performed in paired end mode and must contain R1 (f
 
 # Setup/Installation
 
-To run the pipeline make sure you have a working snakemake installation in a conda environment. We highly recommend using micromamba instead of any other alternatives conda!!!
+To run the pipeline make sure you have a working snakemake installation in a conda environment. We highly recommend using mamba instead of any other alternatives conda!!!
+Please follow this guide on how to install [mamba](https://mamba.readthedocs.io/en/latest/installation/mamba-installation.html)
 
 Clone this repository with command
 ```
@@ -99,28 +100,45 @@ Once you have the config file and the metadata file setup
 
 First activate the conda environement containing base snakmake installation
 
-```mamba activate umi-dedup-base```
+```
+mamba activate umi-dedup-base
+```
 
 The run the pipeline with the following commands
 
 ```
- cd <Path/to/work_dir>
- snakemake --slurm -j 10 --configfile <Path/to/config.yaml> --use-conda --conda-frontend mamba --profile <Path/to/pipeline_dir/profile> --snakefile <Path/to/pipeline_dir/workflow/Snakefile
+cd <Path/to/work_dir>
+snakemake --slurm -j 10 --configfile <Path/to/config.yaml> --use-conda --conda-frontend mamba --profile <Path/to/pipeline_dir/profile> --snakefile <Path/to/pipeline_dir/workflow/Snakefile --conda-prefix <Path/to/local/conda_envs>
 ```
 
+The `--conda-prefix` will install the conda environment required at the particular location specified, this will helpful in maintaining a single version across runs. This is the recommended way. Please make sure before running mulitple instances of the pipeline run this command for one sample or for some test data so as to setup the environments. 
 
-### With one time install
+## Running with Singularity
+
+It is recommend to run the pipeline using a singularity container when working on High Performance Cluster. For this you would require to start the pipeline with
+```
+cd <Path/to/work_dir>
+snakemake --slurm -j 10 --configfile <Path/to/config.yaml> --use-conda --conda-frontend mamba --profile <Path/to/pipeline_dir/profile> --snakefile <Path/to/pipeline_dir/workflow/Snakefile --use-singularity --conda-prefix <Path/to/local/conda_envs> --singularity-prefix <Path/to/local/Singularity> --singularity-args "-B /Path/to/data_folder1/:/Path/to/data_folder1,/Path/to/genome/folder:/Path/to/genome/folder"
+```
+
+The `--singularity-prefix` will install the singularity environment required at the particular location specified, this will helpful in maintaining a single version across runs. This is the recommended way. Please make sure before running mulitple instances of the pipeline run this command for one sample or for some test data so as to setup the singularity image and the conda environment inside them. 
+
+The `--singularity-args` must be used to bind the folders/files required by the pipeline. The current working directory is automatically bound by snakemake. Please look at documentation at [Apptainer](https://apptainer.org/docs/user/latest/introduction.html) and [Snakmake documentation](https://snakemake.readthedocs.io/en/v7.32.3/snakefiles/deployment.html#running-jobs-in-containers)
+
+
+
+## With one time install
 
 #### !!! Not Recommended !!!
 First activate the conda environement containing base snakmake installation
 
 ```
-mamba activate snakemake-wgs-full
+mamba activate umi-wgs-full
 ```
 
 The run the pipeline with the following commands
 
 ```
- cd <Path/to/work_dir>
- snakemake --slurm -j 10 --configfile <Path/to/config.yaml> --profile <Path/to/pipeline_dir/profile> --snakefile <Path/to/pipeline_dir/workflow/nakefile
+cd <Path/to/work_dir>
+snakemake --slurm -j 10 --configfile <Path/to/config.yaml> --profile <Path/to/pipeline_dir/profile> --snakefile <Path/to/pipeline_dir/workflow/nakefile
 ```
