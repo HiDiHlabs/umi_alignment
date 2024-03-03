@@ -9,6 +9,12 @@ printshellcmds: True
 rerun-incomplete: True
 restart-times: 2
 
-conda-prefix: /dh-projects/richter_transformation/analysis/wgs_analysis/alignment_pipeline_cutadapt/conda_envs
-singularity-prefix: /dh-projects/richter_transformation/analysis/wgs_analysis/alignment_pipeline_cutadapt/Singularity
-singularity-args: "-B /dh-projects/richter_transformation:/dh-projects/richter_transformation,/applications/:/applications,/dh-projects/T-NHL-chapuy:/dh-projects/T-NHL-chapuy"
+slurm: True
+# use-conda: True
+# use-singularity: False 
+# conda-frontend: mamba
+
+
+# conda-prefix: /dh-projects/scnsl_ffpe/analysis/software/wgs_umi_alignment_pipeline/conda_envs
+# singularity-prefix: /dh-projects/scnsl_ffpe/analysis/software/wgs_umi_alignment_pipeline/Singularity
+# singularity-args: "-B /dh-projects/scnsl_ffpe:/dh-projects/scnsl_ffpe,/applications/:/applications"

@@ -5,7 +5,7 @@ rule fix_mate:
     This can cause problems in downstream analysis.
     """
     input:
-        bam =tmp dir / "alignments" / '{sample}_merged_umi_annot.bam',
+        bam =tmpdir / "alignments" / '{sample}_merged_umi_annot.bam',
     output:
         bam = temp(tmpdir / "alignments" / '{sample}_mate_fix.bam'),
     params:

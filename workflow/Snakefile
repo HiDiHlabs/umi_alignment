@@ -24,8 +24,6 @@ rule all:
     input:
         expand(wrkdir / "alignments" / '{sample}_dedup.recall.sorted.bam',sample=config['sample']),
         expand(wrkdir / "alignments" / '{sample}_dedup.recall.sorted.bam.bai',sample=config['sample']),
-        expand(wrkdir / "alignments" / '{sample}_dedup.bam',sample=config['sample']),
-        expand(wrkdir / "alignments" / '{sample}_dedup.bam.bai',sample=config['sample']),
         expand(wrkdir / 'metrics' / '{sample}.mosdepth.global.dist.txt',sample=config['sample']),
         expand(wrkdir / "metrics" / '{sample}.flagstat' , sample=config['sample']),
         expand(wrkdir / "metrics" / "{sample}_insert_size_metrics.txt",sample=config['sample']),

@@ -23,7 +23,7 @@ rule group_reads:
         bam = tmpdir / "alignments" / '{sample}_mate_fix.bam',
     output:
         bam = temp(tmpdir / "alignments" / '{sample}_merged_aln_umi_annot_sorted_grouped.bam'),
-        stats = tmpdir / "metrics" / "{sample}.grouped-family-sizes.txt"
+        stats = wrkdir / "metrics" / "{sample}.grouped-family-sizes.txt"
     params:
         allowed_edits = 1,
     threads:
