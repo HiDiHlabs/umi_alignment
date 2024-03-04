@@ -3,48 +3,62 @@ import pandas as pd
 from pathlib import Path
 from itertools import product
 
+
 container: "docker://condaforge/mambaforge"
 
-include: "rules/common.smk" #done
-include: "rules/adapter_trimming.smk" #done
-include: "rules/alignment.smk" #done
-include: "rules/umi_consensus.smk" #done
-include: "rules/duplicate_marking.smk" #done
-include: "rules/flagstatt.smk" #done
-include: "rules/metric_hsmetrics.smk" #done
-include: "rules/metric_insert_size.smk" #done
-include: "rules/metric_mosdepth.smk" #done
-include: "rules/metric_wgs_coverage.smk" #done
-include: "rules/recalibration.smk" #done
 
-
+include: "rules/common.smk"  #done
+include: "rules/adapter_trimming.smk"  #done
+include: "rules/alignment.smk"  #done
+include: "rules/umi_consensus.smk"  #done
+include: "rules/duplicate_marking.smk"  #done
+include: "rules/flagstatt.smk"  #done
+include: "rules/metric_hsmetrics.smk"  #done
+include: "rules/metric_insert_size.smk"  #done
+include: "rules/metric_mosdepth.smk"  #done
+include: "rules/metric_wgs_coverage.smk"  #done
+include: "rules/recalibration.smk"  #done
 
 
 rule all:
     input:
-        expand(wrkdir / "alignments" / '{sample}_dedup.recall.sorted.bam',sample=config['sample']),
-        expand(wrkdir / "alignments" / '{sample}_dedup.recall.sorted.bam.bai',sample=config['sample']),
-        expand(wrkdir / "alignments" / '{sample}_dedup.bam',sample=config['sample']),
-        expand(wrkdir / "alignments" / '{sample}_dedup.bam.bai',sample=config['sample']),
-        expand(wrkdir / 'metrics' / '{sample}.mosdepth.global.dist.txt',sample=config['sample']),
-        expand(wrkdir / "metrics" / '{sample}.flagstat' , sample=config['sample']),
-        expand(wrkdir / "metrics" / "{sample}_insert_size_metrics.txt",sample=config['sample']),
-        expand(wrkdir / "metrics" / "{sample}_insert_size.pdf",sample=config['sample']),
-        expand(wrkdir / 'metrics'/  '{sample}.mosdepth.summary.txt',sample=config['sample']),
-        expand(wrkdir / "metrics" / "{sample}.grouped-family-sizes.txt", sample=config['sample']),
-        expand(wrkdir / "metrics" / '{sample}_recal_data.table', sample=config['sample']),       
-        expand(wrkdir / "metrics" / '{sample}_covariates.pdf', sample=config['sample']),
-        expand(wrkdir / "metrics" / "{sample}_coverage.png",sample=config['sample']) if config['SeqType'] not in ['Panel', 'WES'] else [],
-        expand(wrkdir / 'metrics' / '{sample}.hs_metrics.txt', sample=config['sample']) if config['SeqType'] in ['Panel', 'WES'] else [],
-
-
-
-
-
-
-    
-
-
-
-
-
+        expand(
+            wrkdir / "alignments" / "{sample}_dedup.recall.sorted.bam",
+            sample=config["sample"],
+        ),
+        expand(
+            wrkdir / "alignments" / "{sample}_dedup.recall.sorted.bam.bai",
+            sample=config["sample"],
+        ),
+        expand(wrkdir / "alignments" / "{sample}_dedup.bam", sample=config["sample"]),
+        expand(
+            wrkdir / "alignments" / "{sample}_dedup.bam.bai", sample=config["sample"]
+        ),
+        expand(
+            wrkdir / "metrics" / "{sample}.mosdepth.global.dist.txt",
+            sample=config["sample"],
+        ),
+        expand(wrkdir / "metrics" / "{sample}.flagstat", sample=config["sample"]),
+        expand(
+            wrkdir / "metrics" / "{sample}_insert_size_metrics.txt",
+            sample=config["sample"],
+        ),
+        expand(wrkdir / "metrics" / "{sample}_insert_size.pdf", sample=config["sample"]),
+        expand(
+            wrkdir / "metrics" / "{sample}.mosdepth.summary.txt",
+            sample=config["sample"],
+        ),
+        expand(
+            wrkdir / "metrics" / "{sample}.grouped-family-sizes.txt",
+            sample=config["sample"],
+        ),
+        expand(
+            wrkdir / "metrics" / "{sample}_recal_data.table", sample=config["sample"]
+        ),
+        expand(wrkdir / "metrics" / "{sample}_covariates.pdf", sample=config["sample"]),
+        expand(wrkdir / "metrics" / "{sample}_coverage.png", sample=config["sample"])
+        if config["SeqType"] not in ["Panel", "WES"]
+        else [],
+        expand(wrkdir / "metrics" / "{sample}.hs_metrics.txt", sample=config["sample"])
+        if config["SeqType"] in ["Panel", "WES"]
+        else [],

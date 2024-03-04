@@ -58,13 +58,13 @@ mamba env create -f workflow/envs/umi-dedup-full.yaml
 ## Config file
 To start the pipeline certain configurations must be made in the template config ```config/config.yaml```. It is recommended for each run of the pipeline a new config file be created based on the template. It is also remcommended that the config file is stored in the output folder
 
-Please modify the entry for 
+Please modify the entry for
 
 1. `SeqType`: Should be either `Panel`, `WGS` or `WES`
 
 2. `library_prep_kit`: Library prep kit used for preparing the sample. If not available will be set to Unknown
 
-3. `pid`: The patient ID as that in the PATIENT ID column. Needs to be `string` 
+3. `pid`: The patient ID as that in the PATIENT ID column. Needs to be `string`
 
 4. `sample`: Since this pipleine is run sample wise please mention the sample name as mentioned in the sample_name column of the metadata file. Needs to be `string`
 7. `metadata` Absolute path to the metadata sheet (Please check [Metadata section](#metadata) for format specifcation of the metadata sheet). Needs to be `Path`
@@ -101,10 +101,10 @@ Please create a metadata file with columns
 3. LANE_NO: A column containing the lane information for the sequencing files. Should be prefixed with `L_` if not present
 4. SAMPLE_NAME: Containing the sample name which is inputed in the config file. Please note if the metadata file consists of multipe samples only the sample pid combination mentioned in the sample and pid directive of the config.yaml will be run
 5. PATIENT_ID :Containing the ```pid``` which is inputed in the config file. Please note if the metadata file consists of multipe PIDs only the ```sample``` ```pid``` combination mentioned in the sample and pid directive of the config.yaml will be run.
-7. RUN_ID: Please mention the run id for the squencing run for the sample 
+7. RUN_ID: Please mention the run id for the squencing run for the sample
 
 
-# Running the pipeline 
+# Running the pipeline
 
 Once you have the config file and the metadata file setup
 
@@ -126,10 +126,10 @@ snakemake -j 10 --configfile <Path/to/config.yaml> \
 
 ```
 
-The `--conda-prefix` will install the conda environment required at the particular location specified, this will helpful in maintaining a single version across runs. This is the recommended way. 
+The `--conda-prefix` will install the conda environment required at the particular location specified, this will helpful in maintaining a single version across runs. This is the recommended way.
 
-**!!!Note!!!** 
-Please make sure before running mulitple instances of the pipeline, to run this command for one sample or for some test data so as to setup the environments. 
+**!!!Note!!!**
+Please make sure before running mulitple instances of the pipeline, to run this command for one sample or for some test data so as to setup the environments.
 You can ignore the --conda-prefix command but is highly recommned to use ut
 
 ## Running with Singularity
@@ -145,16 +145,16 @@ snakemake -j 10 --configfile <Path/to/config.yaml> \
  --use-conda --conda-frontend mamba \
  --conda-prefix <Path/to/local/conda_envs> \
  --profile <Path/to/pipeline_dir/profile> \
- --snakefile <Path/to/pipeline_dir/workflow/Snakefile  
+ --snakefile <Path/to/pipeline_dir/workflow/Snakefile
 ```
 
-The `--singularity-prefix` will install the singularity environment required at the particular location specified, this will helpful in maintaining a single version across runs. This is the recommended way. 
+The `--singularity-prefix` will install the singularity environment required at the particular location specified, this will helpful in maintaining a single version across runs. This is the recommended way.
 
 **!!!Note!!!**
-Please make sure before running mulitple instances of the pipeline run this command for one sample or for some test data so as to setup the singularity image and the conda environment inside them. 
+Please make sure before running mulitple instances of the pipeline run this command for one sample or for some test data so as to setup the singularity image and the conda environment inside them.
 
-The `--singularity-args` must be used to bind the folders/files required by the pipeline 
-(**Hint:** the files and folders inside the `config/config.yaml` file the location of the fastq files from the metadata file will need to be bound). 
+The `--singularity-args` must be used to bind the folders/files required by the pipeline
+(**Hint:** the files and folders inside the `config/config.yaml` file the location of the fastq files from the metadata file will need to be bound).
 
 The current working directory is automatically bound by snakemake. Please look at documentation at [Apptainer](https://apptainer.org/docs/user/latest/introduction.html) and [Snakmake documentation](https://snakemake.readthedocs.io/en/v7.32.3/snakefiles/deployment.html#running-jobs-in-containers)
 

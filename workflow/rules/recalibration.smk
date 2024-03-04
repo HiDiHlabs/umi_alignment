@@ -1,24 +1,24 @@
 rule baseRecalibrator:
     input:
-        bam = wrkdir / "alignments" / '{sample}_dedup.bam',
-        dbsnp = dbsnp,
-        genome = genome,
+        bam=wrkdir / "alignments" / "{sample}_dedup.bam",
+        dbsnp=dbsnp,
+        genome=genome,
     output:
-        table = wrkdir / "metrics" / '{sample}_recal_data.table',
-        bam = temp(wrkdir / "alignments" / '{sample}_dedup.recall.bam'),
-        analyse_covariates = wrkdir / "metrics" / '{sample}_covariates.pdf'
+        table=wrkdir / "metrics" / "{sample}_recal_data.table",
+        bam=temp(wrkdir / "alignments" / "{sample}_dedup.recall.bam"),
+        analyse_covariates=wrkdir / "metrics" / "{sample}_covariates.pdf",
     conda:
         "../envs/gatk.yaml"
     threads: 8
     resources:
         mem_mb=8000,
-        runtime=24*60,
-        nodes=1
+        runtime=24 * 60,
+        nodes=1,
     log:
-        logdir / "gatk/{sample}_recal.log"
+        logdir / "gatk/{sample}_recal.log",
     message:
         "Recalibrating with GATK BaseRecalibrator"
-    shell: 
+    shell:
         " ( "
         " gatk BaseRecalibrator -I {input.bam} -R {input.genome} "
         " --known-sites {input.dbsnp} "
@@ -29,21 +29,22 @@ rule baseRecalibrator:
         " -plots {output.analyse_covariates} "
         " ) &> {log} "
 
+
 rule sort_index:
     input:
-        bam = wrkdir / "alignments" / '{sample}_dedup.recall.bam',
+        bam=wrkdir / "alignments" / "{sample}_dedup.recall.bam",
     output:
-        bam = wrkdir / "alignments" / '{sample}_dedup.recall.sorted.bam',
-        bai = wrkdir / "alignments" / '{sample}_dedup.recall.sorted.bam.bai'
+        bam=wrkdir / "alignments" / "{sample}_dedup.recall.sorted.bam",
+        bai=wrkdir / "alignments" / "{sample}_dedup.recall.sorted.bam.bai",
     conda:
         "../envs/samtools.yaml"
-    threads: 8  
+    threads: 8
     resources:
         mem_mb=8000,
-        runtime=24*60,
-        nodes=1
-    log:    
-        logdir / "samtools/{sample}_sort.log"
+        runtime=24 * 60,
+        nodes=1,
+    log:
+        logdir / "samtools/{sample}_sort.log",
     message:
         "Sorting and indexing recalibrated bam file"
     shell:

@@ -48,4 +48,3 @@ png(filename=opt$output, width=3000, height=1000, res=300)
 library(ggplot2)
 plot(readCountsFiltered, ylim=c(10, 20))
 dev.off()
-
