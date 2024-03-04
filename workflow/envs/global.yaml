@@ -1,7 +1,0 @@
-name: globals
-channels:
-  - conda-forge
-  - bioconda
-  - defaults
-dependencies:
-  - pandas=2.1.3

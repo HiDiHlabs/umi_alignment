@@ -3,6 +3,8 @@ config/S*.yaml
 .snakemake/
 Singularity/
 conda_envs/
+conda_envs_ohne_singularity/
+profile/config.yaml.bkp
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
