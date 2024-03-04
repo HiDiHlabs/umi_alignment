@@ -1,38 +1,44 @@
-# Define the default resources for SLURM jobs
+SeqType: "<WGS/WES/Panel>"
 
-# set-resources:
+library_prep_kit: "<libraryprepkit>" # needed for read group assignment defaults to Unknown
 
-genome_human: /applications/otp/reference-genomes/bwa06_1KGRef_PhiX/hs37d5_PhiX.fa
-dbsnp: /applications/otp/ngs_share_complete/assemblies/hg19_GRCh37_1000genomes/databases/dbSNP/dbSNP_147/00-All.vcf.gz
-genotypes_snp: /home/sahays/ALL.chrALL.SNP.phase3_integrated_v5a.20130502.genotypes.vcf
-genotypes_indel: /applications/otp/ngs_share_complete/assemblies/hg19_GRCh37_1000genomes/databases/1000genomes/ALL.chrALL.Indel.phase3_integrated_v5a.20130502.genotypes.vcf.gz
+pid: <Paitient ID> # Patient ID as mentioned in the metadata file
 
-Adapter-Library-Prep-Kit_R1:
-  [
+sample: <Sample Name> # Sample name as mentioned in the metadata file
+
+metadata: /Path/to/metadata.csv # Must be absolute path to the metadata file.
+
+work_dir: /Path/to/work_dir # Must be absolute path to the work directory
+
+log_dir: /Path/to/log_dir # Must be absolute path to the log directory, if not provided defaults to work_dir/logs
+
+genome: /Path/to/genome.fa # Fasta file to the reference genome
+
+dbsnp: /Path/to/dbsnp_all_vcf.gz # required for Base Quality score recalibration
+
+trim_adapters: <True/False> # True if adapter trimming is required, False if not required
+
+Adapter_R1: [
     "AGATCGGAAGAGCACACGTCTGAACTCCAGTCA",
     "AGATCGGAAGAGCACACGTCTGAAC",
     "TGGAATTCTCGGGTGCCAAGG",
     "AGATCGGAAGAGCACACGTCT",
     "CTGTCTCTTATACACATCT",
     "AGATGTGTATAAGAGACAG",
-  ]
+  ] # list of adatapter sequences for R1 reads can be empty list or ignored if trim_adapters is False
 
-Adapter-Library-Prep-Kit_R3:
-  [
+Adapter_R3: [
     "AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT",
     "AGATCGGAAGAGCGTCGTGTAGGGA",
     "TGGAATTCTCGGGTGCCAAGG",
     "AGATCGGAAGAGCACACGTCT",
     "CTGTCTCTTATACACATCT",
     "AGATGTGTATAAGAGACAG",
-  ]
+  ] # list of adatapter sequences for R1 reads can be empty list or ignored if trim_adapters is False
 
-metadata: bare_min_meta_data_sheet.csv
+target_regions: /Path/to/target_regions.bed # Bed file containing the target regions for the analysis only required if SeqType is Panel/WES
 
-work_dir: <path_to_output_folder>
+bait_regions: /Path/to/bait_regions.bed # Bed file containing the bait regions for the analysis only required if SeqType is Panel/WES, if not provided a bait file will be generated from the target file
 
-log_dir: <path_to_output_folder>/logs
-
-sample: S1
-
-pid: P1
+chrom_sizes: /Path/to/chrom_sizes.tsv # Tab separated file containing the chromosome names and their lengths should match the reference genome
+dict_genome: /Path/to/genome.dict # Dictionary file for the reference genome

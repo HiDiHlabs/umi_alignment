@@ -1,24 +1,33 @@
 # UMI Based Sequencing Alignment Pipeline
 
+Authour: Shashwat Sahay(shashwat.sahay@charite.de)
+
+This pipeline was developed under supervision of Dr. Naveed Ishaque (naveed.ishaque@charite.de) and Prof. Roland Eils (roland.eils@charite.de).
+
+The pipeline was tested and supported by Daniel Steiert.
+
+
 The pipeline is made for aligning UMI based WGS/WES and Panel Seq data and to compute the QC metrics associated with it.
 
 We require the sequencing is performed in paired end mode and must contain R1 (forward read) R2 (UMI) and R3 (reverse read) for each lane and run
 
 
-# Setup/Installation
+# Prerequisites
 
-To run the pipeline make sure you have a working snakemake installation in a conda environment. We highly recommend using mamba instead of any other alternatives conda!!!
+To run the pipeline make sure you have a working snakemake installation in a conda environment. We highly recommend using miniforge3 instead of any other alternatives conda!!!
 Please follow this guide on how to install [mamba](https://mamba.readthedocs.io/en/latest/installation/mamba-installation.html)
 
 Clone this repository with command
+
 ```
-git clone https://github.com/HiDiHlabs/wgs_umi_alignment.git
+git clone https://github.com/HiDiHlabs/umi_alignment.git
 ```
 
 And change to directory
 
 ```
-cd wgs_umi_alignment
+
+cd umi_alignment
 ```
 
 
@@ -42,7 +51,8 @@ mamba env create -f workflow/envs/umi-dedup-full.yaml
 ```
 
 
-# Pipeline PREP
+# Pipeline Preparation
+
 ### !!! Important !!!
 
 ## Config file
@@ -108,22 +118,48 @@ The run the pipeline with the following commands
 
 ```
 cd <Path/to/work_dir>
-snakemake --slurm -j 10 --configfile <Path/to/config.yaml> --use-conda --conda-frontend mamba --profile <Path/to/pipeline_dir/profile> --snakefile <Path/to/pipeline_dir/workflow/Snakefile --conda-prefix <Path/to/local/conda_envs>
+snakemake -j 10 --configfile <Path/to/config.yaml> \
+ --use-conda --conda-frontend mamba \
+ --conda-prefix <Path/to/local/conda_envs> \
+ --profile <Path/to/pipeline_dir/profile> \
+ --snakefile <Path/to/pipeline_dir/workflow/Snakefile
+
 ```
 
-The `--conda-prefix` will install the conda environment required at the particular location specified, this will helpful in maintaining a single version across runs. This is the recommended way. Please make sure before running mulitple instances of the pipeline run this command for one sample or for some test data so as to setup the environments. 
+The `--conda-prefix` will install the conda environment required at the particular location specified, this will helpful in maintaining a single version across runs. This is the recommended way. 
+
+**!!!Note!!!** 
+Please make sure before running mulitple instances of the pipeline, to run this command for one sample or for some test data so as to setup the environments. 
+You can ignore the --conda-prefix command but is highly recommned to use ut
 
 ## Running with Singularity
 
 It is recommend to run the pipeline using a singularity container when working on High Performance Cluster. For this you would require to start the pipeline with
+
+
 ```
 cd <Path/to/work_dir>
-snakemake --slurm -j 10 --configfile <Path/to/config.yaml> --use-conda --conda-frontend mamba --profile <Path/to/pipeline_dir/profile> --snakefile <Path/to/pipeline_dir/workflow/Snakefile --use-singularity --conda-prefix <Path/to/local/conda_envs> --singularity-prefix <Path/to/local/Singularity> --singularity-args "-B /Path/to/data_folder1/:/Path/to/data_folder1,/Path/to/genome/folder:/Path/to/genome/folder"
+snakemake -j 10 --configfile <Path/to/config.yaml> \
+ --use-singularity --singularity-prefix <Path/to/local/Singularity> \
+ --singularity-args "-B /Path/to/data_folder1/:/Path/to/data_folder1,/Path/to/data_folder2/:/Path/to/data_folder2" \
+ --use-conda --conda-frontend mamba \
+ --conda-prefix <Path/to/local/conda_envs> \
+ --profile <Path/to/pipeline_dir/profile> \
+ --snakefile <Path/to/pipeline_dir/workflow/Snakefile  
 ```
 
-The `--singularity-prefix` will install the singularity environment required at the particular location specified, this will helpful in maintaining a single version across runs. This is the recommended way. Please make sure before running mulitple instances of the pipeline run this command for one sample or for some test data so as to setup the singularity image and the conda environment inside them. 
+The `--singularity-prefix` will install the singularity environment required at the particular location specified, this will helpful in maintaining a single version across runs. This is the recommended way. 
 
-The `--singularity-args` must be used to bind the folders/files required by the pipeline. The current working directory is automatically bound by snakemake. Please look at documentation at [Apptainer](https://apptainer.org/docs/user/latest/introduction.html) and [Snakmake documentation](https://snakemake.readthedocs.io/en/v7.32.3/snakefiles/deployment.html#running-jobs-in-containers)
+**!!!Note!!!**
+Please make sure before running mulitple instances of the pipeline run this command for one sample or for some test data so as to setup the singularity image and the conda environment inside them. 
+
+The `--singularity-args` must be used to bind the folders/files required by the pipeline 
+(**Hint:** the files and folders inside the `config/config.yaml` file the location of the fastq files from the metadata file will need to be bound). 
+
+The current working directory is automatically bound by snakemake. Please look at documentation at [Apptainer](https://apptainer.org/docs/user/latest/introduction.html) and [Snakmake documentation](https://snakemake.readthedocs.io/en/v7.32.3/snakefiles/deployment.html#running-jobs-in-containers)
+
+**Side Note**
+If you are using a HPC please talk to your cluster admin and make sure all compute nodes have a running singularity version, For the first run/setup of the conda environment and singularity container requires the Node to have a working internet connection.
 
 
 
