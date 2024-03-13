@@ -53,7 +53,7 @@ rule bwa_map:
         temp(wrkdir / "alignments" / "{run_id}" / "{sample}_aln_{lane}.bam"),
     threads: 8
     resources:
-        mem_mb=10000,
+        mem_mb=12000,
         runtime=24 * 60,
         nodes=1,
     conda:
@@ -65,7 +65,7 @@ rule bwa_map:
     shell:
         "("
         "samtools fastq {input.bam} "
-        "| bwa mem -Y -t {threads} -p {input.genome} - "
+        "| bwa mem -Y -K 150000000 -t {threads} -p {input.genome} - "
         "| fgbio -Xmx4G --compression 1 --async-io ZipperBams "
         "--unmapped {input.bam} "
         "--ref {input.genome} "
@@ -127,11 +127,11 @@ rule realign:
     shell:
         "("
         "samtools fastq {input.bam} "
-        "| bwa mem -Y -t {threads} -p {input.ref} - "
+        "| bwa mem -K 150000000 -Y -t {threads} -p {input.ref} - "
         "| fgbio -Xmx{resources.mem_fgbio}m --compression 0 --async-io ZipperBams "
         "--unmapped {input.bam} "
         "--ref {input.ref} "
         "--tags-to-reverse Consensus "
         "--tags-to-revcomp Consensus "
-        "| samtools sort --threads 8 -o {output.bam}##idx##{output.bai} --write-index "
+        "| samtools sort --threads {threads} -o {output.bam}##idx##{output.bai} --write-index "
         ") &> {log} "

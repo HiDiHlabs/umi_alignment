@@ -8,6 +8,7 @@ container: "docker://condaforge/mambaforge"
 
 
 include: "rules/common.smk"  #done
+include: "rules/create_links.smk"
 include: "rules/adapter_trimming.smk"  #done
 include: "rules/alignment.smk"  #done
 include: "rules/umi_consensus.smk"  #done
@@ -30,15 +31,16 @@ rule all:
             wrkdir / "alignments" / "{sample}_dedup.recall.sorted.bam.bai",
             sample=config["sample"],
         ),
-        expand(wrkdir / "alignments" / "{sample}_dedup.bam", sample=config["sample"]),
-        expand(
-            wrkdir / "alignments" / "{sample}_dedup.bam.bai", sample=config["sample"]
-        ),
         expand(
             wrkdir / "metrics" / "{sample}.mosdepth.global.dist.txt",
             sample=config["sample"],
         ),
-        expand(wrkdir / "metrics" / "{sample}.flagstat", sample=config["sample"]),
+        # expand(wrkdir / "metrics" / "{sample}.flagstat", sample=config["sample"]),
+        expand(
+            wrkdir / "metrics" / "{sample}_{ext}.flagstat",
+            sample=config["sample"],
+            ext=["dedup.recall.sorted", "merged_umi_annot"],
+        ),
         expand(
             wrkdir / "metrics" / "{sample}_insert_size_metrics.txt",
             sample=config["sample"],

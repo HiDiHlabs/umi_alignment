@@ -12,11 +12,40 @@ rule fgbio:
     conda:
         "../envs/fgbio.yaml"
     log:
-        logdir / "fgbio" / "{run_id}_{sample}_{lane}.log",
+        logdir / "fgbio" / "annotate_umi_{run_id}_{sample}_{lane}.log",
     message:
         "Annotating BAM with UMIs from fastq file."
     shell:
         "fgbio AnnotateBamWithUmis -i {input.alignment} -f {input.fastq_r2} -o {output} -t RX -q UQ -s true &> {log}"
+
+
+rule fix_mate:
+    """
+    Fixing mate information if required
+    For some reason for some reads the mate information is not properly set.
+    This can cause problems in downstream analysis.
+    """
+    input:
+        bam=wrkdir / "alignments" / "{sample}_merged_umi_annot.bam",
+    output:
+        bam=temp(wrkdir / "alignments" / "{sample}_mate_fix.bam"),
+    threads: 2
+    resources:
+        mem_mb=8000,
+        runtime=24 * 60,
+        nodes=1,
+    conda:
+        "../envs/fgbio.yaml"
+    log:
+        logdir / "fgbio/fixmate_{sample}.log",
+    message:
+        "Fixing mate information if required"
+    shell:
+        "fgbio -Xmx{resources.mem_mb}m --compression 1 --async-io SetMateInformation "
+        "--input {input.bam} "
+        "--output {output.bam} "
+        "--allow-missing-mates true"
+        "&> {log} "
 
 
 rule group_reads:
@@ -28,7 +57,8 @@ rule group_reads:
         ),
         stats=wrkdir / "metrics" / "{sample}.grouped-family-sizes.txt",
     params:
-        allowed_edits=1,
+        strategy=strategy,
+        allowed_edits=allowed_edits,
     threads: 2
     resources:
         mem_mb=8000,
@@ -43,7 +73,7 @@ rule group_reads:
     shell:
         "fgbio -Xmx{resources.mem_mb}m --compression 1 --async-io GroupReadsByUmi "
         "--input {input.bam} "
-        "--strategy Adjacency "
+        "--strategy {params.strategy} "
         "--edits {params.allowed_edits} "
         "--output {output.bam} "
         "--family-size-histogram {output.stats} "
@@ -56,8 +86,8 @@ rule call_consensus_reads:
     output:
         bam=temp(wrkdir / "alignments" / "{sample}.cons.unmapped.bam"),
     params:
-        min_reads=3,
-        min_base_qual=20,
+        min_reads=consensus_min_reads,
+        min_base_qual=consensus_min_base_qual,
     threads: 4
     resources:
         mem_mb=4000,
@@ -86,9 +116,9 @@ rule filter_consensus_reads:
     output:
         bam=temp(wrkdir / "alignments" / "{sample}.cons.filtered.bam"),
     params:
-        min_reads=3,
-        min_base_qual=40,
-        max_error_rate=0.2,
+        min_reads=filter_min_reads,
+        min_base_qual=filter_min_base_qual,
+        max_error_rate=filter_max_error_rate,
     threads: 8
     resources:
         mem_mb=8000,

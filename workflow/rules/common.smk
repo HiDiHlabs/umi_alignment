@@ -81,6 +81,64 @@ if "dbsnp" not in config:
 else:
     dbsnp = config["dbsnp"]
 
+if "SORTING_COLLECTION_SIZE_RATIO" not in config:
+    print("Setting default value for SORTING_COLLECTION_SIZE_RATIO to 0.01")
+    SORTING_COLLECTION_SIZE_RATIO = 0.01
+else:
+    SORTING_COLLECTION_SIZE_RATIO = config["SORTING_COLLECTION_SIZE_RATIO"]
+
+if "allowed_edits" not in config:
+    print("Setting default value for allowed_edits to 1")
+    allowed_edits = 1
+else:
+    allowed_edits = config["allowed_edits"]
+
+if "strategy" not in config:
+    print("Setting default value for strategy to Adjacency")
+    strategy = "Adjacency"
+else:
+    strategy = config["strategy"]
+
+if "consensus_min_reads" not in config:
+    if seq_type == "WGS":
+        print("Setting default value for consensus_min_reads to 3 as SeqType is WGS")
+        consensus_min_reads = 3
+    else:
+        print(
+            "Setting default value for consensus_min_reads to 1 as SeqType is not WGS"
+        )
+        consensus_min_reads = 1
+else:
+    consensus_min_reads = config["consensus_min_reads"]
+
+if "consensus_min_base_qual" not in config:
+    print("Setting default value for consensus_min_base_qual to 20")
+    consensus_min_base_qual = 20
+else:
+    consensus_min_base_qual = config["consensus_min_base_qual"]
+
+if "filter_min_reads" not in config:
+    if seq_type == "WGS":
+        print("Setting default value for filter_min_reads to 3 as SeqType is WGS")
+        filter_min_reads = 3
+    else:
+        print("Setting default value for filter_min_reads to 1 as SeqType is not WGS")
+        filter_min_reads = 1
+else:
+    filter_min_reads = config["filter_min_reads"]
+
+if "filter_min_base_qual" not in config:
+    print("Setting default value for filter_min_base_qual to 40")
+    filter_min_base_qual = 40
+else:
+    filter_min_base_qual = config["filter_min_base_qual"]
+
+if "filter_max_error_rate" not in config:
+    print("Setting default value for filter_max_error_rate to 0.2")
+    filter_max_error_rate = 0.2
+else:
+    filter_max_error_rate = config["filter_max_error_rate"]
+
 
 LANE = metadata["LANE_NO"].unique().tolist()
 RUN_ID = metadata["RUN_ID"].unique().tolist()
@@ -110,98 +168,3 @@ for run_id in RUN_ID:
 
 
 filtered_product = filter_combinator(product, allow_list)
-
-
-rule create_links_files:
-    params:
-        metadata=config["metadata"],
-        fastq_dir=wrkdir / "fastq",
-    resources:
-        mem_mb=1000,
-        runtime=20,
-        nodes=1,
-    output:
-        fastq_r1=expand(
-            wrkdir / "fastq" / "{run_id}" / "{sample}_R1_{lane}.fastq.gz",
-            filtered_product,
-            run_id=RUN_ID,
-            sample=config["sample"],
-            lane=LANE,
-        ),
-        fastq_r2=expand(
-            wrkdir / "fastq" / "{run_id}" / "{sample}_R2_{lane}.fastq.gz",
-            filtered_product,
-            run_id=RUN_ID,
-            sample=config["sample"],
-            lane=LANE,
-        ),
-        fastq_r3=expand(
-            wrkdir / "fastq" / "{run_id}" / "{sample}_R3_{lane}.fastq.gz",
-            filtered_product,
-            run_id=RUN_ID,
-            sample=config["sample"],
-            lane=LANE,
-        ),
-    message:
-        "Creating links to fastq files"
-    run:
-        metadata = pd.read_csv(params.metadata)
-        metadata = metadata[
-            (metadata["SAMPLE_NAME"] == config["sample"])
-            & (metadata["PATIENT_ID"] == config["pid"])
-        ]
-
-        for index, row in metadata.iterrows():
-            fastq_file = Path(row["FASTQ_FILE"])
-            suffix = "fastq"
-            if ".gz" in row["FASTQ_FILE"]:
-                suffix += ".gz"
-            output_file = (
-                params.fastq_dir
-                / row["RUN_ID"]
-                / (
-                    row["SAMPLE_NAME"]
-                    + "_"
-                    + row["READ"]
-                    + "_"
-                    + row["LANE_NO"]
-                    + "."
-                    + suffix
-                )
-            )
-            os.makedirs(params.fastq_dir / row["RUN_ID"], exist_ok=True)
-            if os.path.exists(output_file):
-                os.remove(output_file)
-            os.symlink(fastq_file, output_file)
-
-
-if config["trim_adapters"]:
-
-    rule create_adapter_fastq:
-        params:
-            adapt_1=adapter_seq_r1,
-            adapt_3=adapter_seq_r3,
-        output:
-            adapt_1=temp(wrkdir / "{sample}" / "cutadapt" / "adapt_1.fastq"),
-            adapt_3=temp(wrkdir / "{sample}" / "cutadapt" / "adapt_3.fastq"),
-        threads: 1
-        resources:
-            mem_mb=1000,
-            runtime=20,
-            nodes=1,
-        message:
-            "Creating adapter fastq files"
-        run:
-            with open(output.adapt_1, "w") as handle:
-                count = 1
-                for i in params.adapt_1:
-                    handle.write(">adapter_" + str(count) + "\n")
-                    handle.write(i + "\n")
-                    count += 1
-
-            with open(output.adapt_3, "w") as handle:
-                count = 1
-                for i in params.adapt_3:
-                    handle.write(">adapter_" + str(count) + "\n")
-                    handle.write(i + "\n")
-                    count += 1

@@ -12,8 +12,8 @@ if seq_type in ["Panel", "WES"]:
             "../envs/bedtools.yaml"
         threads: 1
         resources:
-            mem_mb=4000,
-            runtime=24 * 60,
+            mem_mb=1000,
+            runtime=4 * 60,
             nodes=1,
         log:
             logdir / "bedtools" / "{sample}_slop.log",
