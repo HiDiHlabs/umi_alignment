@@ -7,7 +7,7 @@ rule fix_mate:
     input:
         bam =tmpdir / "alignments" / '{sample}_merged_umi_annot.bam',
     output:
-        bam = temp(tmpdir / "alignments" / '{sample}_mate_fix.bam'),
+        bam = tmpdir / "alignments" / '{sample}_mate_fix.bam',
     params:
         allowed_edits = 1,
     threads:
@@ -26,6 +26,7 @@ rule fix_mate:
         "fgbio -Xmx{resources.mem_mb}m --compression 1 --async-io SetMateInformation "
         "--input {input.bam} "
         "--output {output.bam} "
+        "--allow-missing-mates "
         "&> {log} "
 
 
@@ -34,8 +35,8 @@ rule duplicates:
     input:
         tmpdir / "alignments" / '{sample}.cons.filtered.realigned.bam',
     output:
-        bam = tmpdir / "alignments" / '{sample}_dedup.bam',
-        bai = tmpdir / "alignments" / '{sample}_dedup.bam.bai',
+        bam = temp(tmpdir / "alignments" / '{sample}_dedup.bam'),
+        bai = temp(tmpdir / "alignments" / '{sample}_dedup.bam.bai'),
         metric = wrkdir / "metrics" / '{sample}_marked_dup_metrics.txt'
     conda:
         "../envs/gatk.yaml"

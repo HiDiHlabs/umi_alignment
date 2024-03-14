@@ -22,14 +22,14 @@ rule group_reads:
     input:
         bam = tmpdir / "alignments" / '{sample}_mate_fix.bam',
     output:
-        bam = temp(tmpdir / "alignments" / '{sample}_merged_aln_umi_annot_sorted_grouped.bam'),
+        bam = tmpdir / "alignments" / '{sample}_merged_aln_umi_annot_sorted_grouped.bam',
         stats = wrkdir / "metrics" / "{sample}.grouped-family-sizes.txt"
     params:
-        allowed_edits = 1,
+        allowed_edits = 2,
     threads:
-        2
+        4 
     resources:
-        mem_mb = 8000,
+        mem_mb = 16000,
         runtime=24*60,
         nodes=1
     conda:
@@ -39,12 +39,13 @@ rule group_reads:
     message:
         "Grouping reads by UMI and position for consensus calling."
     shell:
-        "fgbio -Xmx{resources.mem_mb}m --compression 1 --async-io GroupReadsByUmi "
+        "fgbio -Djava.io.tmpdir=tmpdir -Xmx{resources.mem_mb}m --compression 1 --async-io GroupReadsByUmi "
         "--input {input.bam} "
         "--strategy Adjacency "
         "--edits {params.allowed_edits} "
         "--output {output.bam} "
         "--family-size-histogram {output.stats} "
+        "--threads {threads} "
         "&> {log} "
 
 rule call_consensus_reads:
@@ -53,7 +54,7 @@ rule call_consensus_reads:
     output:
         bam = temp(tmpdir / "alignments" / '{sample}.cons.unmapped.bam'),
     params:
-        min_reads = 3,
+        min_reads = 1,
         min_base_qual = 20
     threads:
         4
@@ -84,8 +85,9 @@ rule filter_consensus_reads:
         bam = temp(tmpdir / "alignments" / '{sample}.cons.filtered.bam'),
 
     params:
-        min_reads = 3,
-        min_base_qual = 40,
+        min_reads = 2,
+        min_base_qual = 20,
+        min_mean_base_quality = 30,
         max_error_rate = 0.2
     threads:
         8
@@ -108,5 +110,6 @@ rule filter_consensus_reads:
         "--ref {input.ref} "
         "--min-reads {params.min_reads} "
         "--min-base-quality {params.min_base_qual} "
+        "--min-mean-base-quality {params.min_mean_base_quality} "
         "--max-base-error-rate {params.max_error_rate} "
         ") &> {log} "
