@@ -11,6 +11,8 @@ The pipeline is made for aligning UMI based WGS/WES and Panel Seq data and to co
 
 We require the sequencing is performed in paired end mode and must contain R1 (forward read) R2 (UMI) and R3 (reverse read) for each lane and run
 
+Currently the ability to provide support is limited.
+
 
 # Prerequisites
 
