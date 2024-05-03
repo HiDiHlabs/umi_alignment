@@ -1,6 +1,6 @@
 rule baseRecalibrator:
     input:
-        bam=wrkdir / "alignments" / "{sample}_dedup.bam",
+        bam=wrkdir / "alignments" / "{sample}.cons.filtered.realigned.bam",
         dbsnp=dbsnp,
         genome=genome,
     output:
@@ -12,7 +12,7 @@ rule baseRecalibrator:
     threads: 8
     resources:
         mem_mb=8000,
-        runtime=24 * 60,
+        runtime=72 * 60,
         nodes=1,
     log:
         logdir / "gatk/{sample}_recal.log",

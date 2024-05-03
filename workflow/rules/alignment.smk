@@ -6,24 +6,51 @@ rule fastqbam:
     """
     input:
         genome=genome,
-        fastq_r1=wrkdir
-        / "fastq"
-        / "{run_id}"
-        / "cutadapt"
-        / "{sample}_R1_{lane}_trim.fastq.gz",
-        fastq_r3=wrkdir
-        / "fastq"
-        / "{run_id}"
-        / "cutadapt"
-        / "{sample}_R3_{lane}_trim.fastq.gz",
+        fastq_r1=(
+            (
+                wrkdir
+                / "fastq"
+                / "{run_id}"
+                / "cutadapt"
+                / "{sample}_R1_{lane}_trim.fastq.gz"
+            )
+            if config["trim_adapters"]
+            else (wrkdir / "fastq" / "{run_id}" / "{sample}_R1_{lane}.fastq.gz")
+        ),
+        fastq_r3=(
+            (
+                (
+                    wrkdir
+                    / "fastq"
+                    / "{run_id}"
+                    / "cutadapt"
+                    / "{sample}_R2_{lane}_trim.fastq.gz"
+                )
+                if config["trim_adapters"]
+                else (wrkdir / "fastq" / "{run_id}" / "{sample}_R2_{lane}.fastq.gz")
+            )
+            if read_structure
+            else (
+                (
+                    wrkdir
+                    / "fastq"
+                    / "{run_id}"
+                    / "cutadapt"
+                    / "{sample}_R3_{lane}_trim.fastq.gz"
+                )
+                if config["trim_adapters"]
+                else (wrkdir / "fastq" / "{run_id}" / "{sample}_R3_{lane}.fastq.gz")
+            )
+        ),
     output:
         temp(wrkdir / "fastq" / "{run_id}" / "{sample}_{lane}_unmapped.bam"),
     params:
         library=library_prep_kit,
-    threads: 8
+        read_structure="--read-structures " + read_structure if read_structure else "",
+    threads: 1
     resources:
         mem_mb=8000,
-        runtime=24 * 60,
+        runtime=72 * 60,
         nodes=1,
     conda:
         "../envs/fgbio.yaml"
@@ -37,8 +64,81 @@ rule fastqbam:
         "--input {input.fastq_r1} {input.fastq_r3} "
         "--sample {wildcards.sample} "
         "--library {params.library} "
-        "--output {output} "
+        "--output {output} {params.read_structure} "
         ") &> {log}"
+
+
+if correct_umi:
+
+    rule CorrectUMI:
+        input:
+            bam=wrkdir / "fastq" / "{run_id}" / "{sample}_{lane}_unmapped.bam",
+            umi_file=umi_file,
+        output:
+            bam=temp(
+                wrkdir
+                / "fastq"
+                / "{run_id}"
+                / "{sample}_{lane}_unmapped_umi_corrected.bam"
+            ),
+            metrics=wrkdir
+            / "metrics"
+            / "correct_umi"
+            / "{run_id}"
+            / "{sample}_{lane}_umi_metrics.txt",
+        params:
+            max_mismatches=correct_umi_max_mismatches,
+            min_distance=correct_umi_min_distance,
+        threads: 1
+        resources:
+            mem_mb=2000,
+            runtime=72 * 60,
+            nodes=1,
+        conda:
+            "../envs/fgbio.yaml"
+        log:
+            logdir / "fgbio" / "correct_umi_{run_id}_{sample}_{lane}.log",
+        message:
+            "Correcting UMIs."
+        shell:
+            "("
+            "fgbio -Xmx{resources.mem_mb}m --compression 1 --async-io CorrectUmis "
+            "--input {input.bam} "
+            "--output {output.bam} "
+            "--max-mismatches 3 "
+            "--min-distance 2 "
+            "--umi-files {input.umi_file} "
+            "--metrics {output.metrics} "
+            "--dont-store-original-umis ) &> {log}"
+
+
+if not read_structure:
+    print("Hi")
+
+    rule AnnotateUMI:
+        input:
+            alignment=wrkdir / "alignments" / "{run_id}" / "{sample}_aln_{lane}.bam",
+            fastq_r2=wrkdir / "fastq" / "{run_id}" / "{sample}_R2_{lane}.fastq.gz",
+        output:
+            temp(
+                wrkdir
+                / "alignments"
+                / "{run_id}"
+                / "{sample}_aln_{lane}_umi_annot.bam"
+            ),
+        threads: 1
+        resources:
+            mem_mb=8000,
+            runtime=72 * 60,
+            nodes=1,
+        conda:
+            "../envs/fgbio.yaml"
+        log:
+            logdir / "fgbio" / "annotate_umi_{run_id}_{sample}_{lane}.log",
+        message:
+            "Annotating BAM with UMIs from fastq file."
+        shell:
+            "fgbio AnnotateBamWithUmis -i {input.alignment} -f {input.fastq_r2} -o {output} -t RX -q UQ -s true &> {log}"
 
 
 rule bwa_map:
@@ -48,13 +148,20 @@ rule bwa_map:
     """
     input:
         genome=genome,
-        bam=wrkdir / "fastq" / "{run_id}" / "{sample}_{lane}_unmapped.bam",
+        bam=(
+            wrkdir
+            / "fastq"
+            / "{run_id}"
+            / "{sample}_{lane}_unmapped_umi_corrected.bam"
+            if correct_umi
+            else wrkdir / "fastq" / "{run_id}" / "{sample}_{lane}_unmapped.bam"
+        ),
     output:
         temp(wrkdir / "alignments" / "{run_id}" / "{sample}_aln_{lane}.bam"),
     threads: 8
     resources:
         mem_mb=12000,
-        runtime=24 * 60,
+        runtime=72 * 60,
         nodes=1,
     conda:
         "../envs/fgbio.yaml"
@@ -79,6 +186,14 @@ rule merge:
     """
     input:
         expand(
+            wrkdir / "alignments" / "{run_id}" / "{sample}_aln_{lane}.bam",
+            filtered_product,
+            run_id=RUN_ID,
+            sample=config["sample"],
+            lane=LANE,
+        )
+        if read_structure
+        else expand(
             wrkdir / "alignments" / "{run_id}" / "{sample}_aln_{lane}_umi_annot.bam",
             filtered_product,
             run_id=RUN_ID,
@@ -86,11 +201,11 @@ rule merge:
             lane=LANE,
         ),
     output:
-        temp(wrkdir / "alignments" / "{sample}_merged_umi_annot.bam"),
+        bam=temp(wrkdir / "alignments" / "{sample}_merged_umi_annot.bam"),
     threads: 8
     resources:
         mem_mb=8000,
-        runtime=24 * 60,
+        runtime=72 * 60,
         nodes=1,
     conda:
         "../envs/samtools.yaml"
@@ -99,7 +214,7 @@ rule merge:
     log:
         logdir / "samtools/{sample}_merge.log",
     shell:
-        "samtools merge -f {output} {input} &> {log}"
+        "(samtools merge -f {output.bam} {input}) &> {log} "
 
 
 rule realign:
@@ -114,10 +229,11 @@ rule realign:
         bai=temp(wrkdir / "alignments" / "{sample}.cons.filtered.realigned.bam.bai"),
     threads: 8
     resources:
-        mem_mb=16000,
-        runtime=24 * 60,
+        mem_mb=50000,
+        runtime=72 * 60,
         nodes=1,
         mem_fgbio=8000,
+        mem_samtools=8000,
     conda:
         "../envs/fgbio.yaml"
     log:
@@ -133,5 +249,5 @@ rule realign:
         "--ref {input.ref} "
         "--tags-to-reverse Consensus "
         "--tags-to-revcomp Consensus "
-        "| samtools sort --threads {threads} -o {output.bam}##idx##{output.bai} --write-index "
+        "| samtools sort --threads {threads} -m{resources.mem_samtools}m -o {output.bam}##idx##{output.bai} --write-index "
         ") &> {log} "
