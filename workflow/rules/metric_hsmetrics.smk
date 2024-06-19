@@ -41,8 +41,9 @@ if seq_type in ["Panel", "WES"]:
         threads: 1
         resources:
             mem_mb=8000,
-            runtime=24 * 60,
+            runtime=4 * 60,
             nodes=1,
+            tmpdir=scratch_dir,
         log:
             logdir / "bedtools" / "{sample}_slop.log",
         message:
@@ -68,6 +69,7 @@ if seq_type in ["Panel", "WES"]:
             mem_mb=8000,
             runtime=24 * 60,
             nodes=1,
+            tmpdir=scratch_dir,
         message:
             "Calculating HS metrics for Panel and WES data"
         log:

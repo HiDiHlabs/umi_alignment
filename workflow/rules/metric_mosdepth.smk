@@ -16,6 +16,7 @@ if seq_type in ["Panel", "WES"]:
             mem_mb=8000,
             runtime=24 * 60,
             nodes=1,
+            tmpdir=scratch_dir,
         conda:
             "../envs/mosdepth.yaml"
         log:
@@ -40,6 +41,7 @@ else:
             mem_mb=8000,
             runtime=24 * 60,
             nodes=1,
+            tmpdir=scratch_dir,
         conda:
             "../envs/mosdepth.yaml"
         message:

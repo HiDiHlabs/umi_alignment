@@ -1,19 +1,21 @@
 rule baseRecalibrator:
     input:
-        bam=wrkdir / "alignments" / "{sample}_dedup.bam",
+        bam=wrkdir / "alignments" / "{sample}.cons.filtered.realigned.bam",
         dbsnp=dbsnp,
         genome=genome,
     output:
         table=wrkdir / "metrics" / "{sample}_recal_data.table",
         bam=temp(wrkdir / "alignments" / "{sample}_dedup.recall.bam"),
+        bai=temp(wrkdir / "alignments" / "{sample}_dedup.recall.bai"),
         analyse_covariates=wrkdir / "metrics" / "{sample}_covariates.pdf",
     conda:
         "../envs/gatk.yaml"
     threads: 8
     resources:
         mem_mb=8000,
-        runtime=24 * 60,
+        runtime=72 * 60,
         nodes=1,
+        tmpdir=scratch_dir,
     log:
         logdir / "gatk/{sample}_recal.log",
     message:
@@ -43,6 +45,7 @@ rule sort_index:
         mem_mb=8000,
         runtime=24 * 60,
         nodes=1,
+        tmpdir=scratch_dir,
     log:
         logdir / "samtools/{sample}_sort.log",
     message:

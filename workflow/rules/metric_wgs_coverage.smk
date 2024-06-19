@@ -10,6 +10,7 @@ rule coveragePlot:
         mem_mb=10000,
         runtime=24 * 60,
         nodes=1,
+        tmpdir=scratch_dir,
     conda:
         "../envs/coveragePlot.yaml"
     log:
