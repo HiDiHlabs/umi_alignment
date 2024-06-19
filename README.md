@@ -124,7 +124,7 @@ Please create a metadata file with columns other columns can exist but not requi
 1. FASTQ_FILE: A column containing absolute paths to the locations of the FASTQ files,
 2. READ: A column contain information with regards to R1, R2 and R3 of the sequencing file. Needs to be prefixed with `R` if not present
 3. LANE_NO: A column containing the lane information for the sequencing files. Should be prefixed with `L_` if not present
-4. SAMPLE_NAME: Containing the sample name which is inputed in the config file. Please note if the metadata file consists of multipe samples only the sample pid combination mentioned in the sample and pid directive of the config.yaml will be run
+4. SAMPLE_TYPE: Containing the sample name which is inputed in the config file. Please note if the metadata file consists of multipe samples only the sample pid combination mentioned in the sample and pid directive of the config.yaml will be run
 5. PATIENT_ID :Containing the ```pid``` which is inputed in the config file. Please note if the metadata file consists of multipe PIDs only the ```sample``` ```pid``` combination mentioned in the sample and pid directive of the config.yaml will be run.
 7. RUN_ID: Please mention the run id for the squencing run for the sample
 

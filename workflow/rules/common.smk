@@ -33,7 +33,7 @@ if "metadata" not in config:
 else:
     metadata = pd.read_csv(config["metadata"])
     metadata = metadata[
-        (metadata["SAMPLE_NAME"] == config["sample"])
+        (metadata["SAMPLE_TYPE"] == config["sample"])
         & (metadata["PATIENT_ID"] == config["pid"])
     ]
     if metadata.shape[0] == 0:

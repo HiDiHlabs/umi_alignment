@@ -38,7 +38,7 @@ rule create_links_files:
     run:
         metadata = pd.read_csv(params.metadata)
         metadata = metadata[
-            (metadata["SAMPLE_NAME"] == config["sample"])
+            (metadata["SAMPLE_TYPE"] == config["sample"])
             & (metadata["PATIENT_ID"] == config["pid"])
         ]
         if params.read_structure:
@@ -59,7 +59,7 @@ rule create_links_files:
                 params.fastq_dir
                 / row["RUN_ID"]
                 / (
-                    row["SAMPLE_NAME"]
+                    row["SAMPLE_TYPE"]
                     + "_"
                     + row["READ"]
                     + "_"
