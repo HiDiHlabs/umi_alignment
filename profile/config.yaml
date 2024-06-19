@@ -3,14 +3,14 @@ jobs: 10
 
 latency-wait: 60
 reason: True
-# default-resources:
-#   slurm_partition: compute
+
 keep-going: True
 printshellcmds: True
 rerun-incomplete: True
 restart-times: 2
+
 # delete-temp-output: True
-conda-prefix: /dh-projects/ag-ishaque/analysis/sahays/alignment_pipeline/conda_envs
+conda-prefix: /dh-projects/richter_transformation/analysis/wgs_analysis/alignment_pipeline/conda_envs
 # conda-prefix: /dh-projects/richter_transformation/analysis/wgs_analysis/alignment_pipeline/conda_envs_ohne_singularity
-singularity-prefix: /dh-projects/ag-ishaque/analysis/sahays/alignment_pipeline/Singularity
-singularity-args: "-B /dh-projects/ag-ishaque:/dh-projects/ag-ishaque,/applications/:/applications,/dh-projects/T-NHL-chapuy:/dh-projects/T-NHL-chapuy,/dh-projects/exliquid:/dh-projects/exliquid"
+singularity-prefix: /dh-projects/richter_transformation/analysis/wgs_analysis/alignment_pipeline/Singularity
+singularity-args: "-B /dh-projects/richter_transformation:/dh-projects/richter_transformation,/applications/:/applications,/dh-projects/T-NHL-chapuy:/dh-projects/T-NHL-chapuy"

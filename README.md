@@ -9,7 +9,9 @@ The pipeline was tested and supported by Daniel Steiert.
 
 The pipeline is made for aligning UMI based WGS/WES and Panel Seq data and to compute the QC metrics associated with it.
 
-We require the sequencing is performed in paired end mode
+We require the sequencing is performed in paired end mode and must contain R1 (forward read) R2 (UMI) and R3 (reverse read) for each lane and run
+
+Currently the ability to provide support is limited.
 
 
 # Prerequisites
@@ -91,40 +93,15 @@ Please modify the entry for
 
 16. `dict_genome`: An absolute path to dict file for the given genomes, ignored if `SeqType` is `WGS`
 
-17. `group_allowed_edits`: Number of edit allowed when grouping based on umi. defaults to  0, should be set to zero if correct_umi is true
-18. `group_min_mapq: 20`: Set `--min-map-q` of groupReadsByUMI
-19. `group_strategy`: Set the `--strategy` param of groupReadsByUMI deafults to `Adjacency`
 
-
-20. `consensus_min_reads`: 1
-21. `consensus_min_base_qual`: 2
-22. `consensus_min_input_base_mapq`: 10
-23. `consensus_error_rate_pre_umi`: 45
-24. `consensus_error_rate_post_umi`: 30
-
-
-25. `filter_min_reads`: 3
-26. `filter_min_base_qual`: 2
-27. `filter_max_base_error_rate`: 0.1
-28. `filter_max_read_error_rate`: 0.05
-29. `filter_max_no_call_fraction`: 0.2
-
-
-30. `read_structure`: 8M143T 8M143T
-
-
-31. `correct_umi`: True
-32. `correct_umi_max_mismatches`: 3
-33. `correct_umi_min_distance`: 1
-34. `umi_file`:
 
 ## Metadata file
 
-Please create a metadata file with columns other columns can exist but not required
+Please create a metadata file with columns
 1. FASTQ_FILE: A column containing absolute paths to the locations of the FASTQ files,
 2. READ: A column contain information with regards to R1, R2 and R3 of the sequencing file. Needs to be prefixed with `R` if not present
 3. LANE_NO: A column containing the lane information for the sequencing files. Should be prefixed with `L_` if not present
-4. SAMPLE_TYPE: Containing the sample name which is inputed in the config file. Please note if the metadata file consists of multipe samples only the sample pid combination mentioned in the sample and pid directive of the config.yaml will be run
+4. SAMPLE_NAME: Containing the sample name which is inputed in the config file. Please note if the metadata file consists of multipe samples only the sample pid combination mentioned in the sample and pid directive of the config.yaml will be run
 5. PATIENT_ID :Containing the ```pid``` which is inputed in the config file. Please note if the metadata file consists of multipe PIDs only the ```sample``` ```pid``` combination mentioned in the sample and pid directive of the config.yaml will be run.
 7. RUN_ID: Please mention the run id for the squencing run for the sample
 

@@ -41,7 +41,7 @@ if seq_type in ["Panel", "WES"]:
         threads: 1
         resources:
             mem_mb=8000,
-            runtime=4 * 60,
+            runtime=24 * 60,
             nodes=1,
         log:
             logdir / "bedtools" / "{sample}_slop.log",

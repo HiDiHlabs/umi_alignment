@@ -1,5 +1,4 @@
 import os
-from datetime import datetime
 import pandas as pd
 from pathlib import Path
 from itertools import product
@@ -10,10 +9,10 @@ container: "docker://condaforge/mambaforge"
 
 include: "rules/common.smk"  #done
 include: "rules/create_links.smk"
-include: "rules/umi_based_rules.smk"  #done
 include: "rules/adapter_trimming.smk"  #done
 include: "rules/alignment.smk"  #done
-#  include: "rules/duplicate_marking.smk"  #done
+include: "rules/umi_consensus.smk"  #done
+include: "rules/duplicate_marking.smk"  #done
 include: "rules/flagstatt.smk"  #done
 include: "rules/metric_hsmetrics.smk"  #done
 include: "rules/metric_insert_size.smk"  #done
@@ -36,10 +35,11 @@ rule all:
             wrkdir / "metrics" / "{sample}.mosdepth.global.dist.txt",
             sample=config["sample"],
         ),
+        # expand(wrkdir / "metrics" / "{sample}.flagstat", sample=config["sample"]),
         expand(
             wrkdir / "metrics" / "{sample}_{ext}.flagstat",
             sample=config["sample"],
-            ext=["dedup.recall.sorted"],
+            ext=["dedup.recall.sorted", "merged_umi_annot"],
         ),
         expand(
             wrkdir / "metrics" / "{sample}_insert_size_metrics.txt",
@@ -64,20 +64,3 @@ rule all:
         expand(wrkdir / "metrics" / "{sample}.hs_metrics.txt", sample=config["sample"])
         if config["SeqType"] in ["Panel", "WES"]
         else [],
-        expand(
-            wrkdir
-            / "metrics"
-            / "correct_umi"
-            / "{run_id}"
-            / "{sample}_{lane}_umi_metrics.txt",
-            filtered_product,
-            run_id=RUN_ID,
-            sample=config["sample"],
-            lane=LANE,
-        )
-        if correct_umi
-        else [],
-        expand(
-            wrkdir / "metrics" / "{sample}_consensus_metrics.tsv",
-            sample=config["sample"],
-        ),

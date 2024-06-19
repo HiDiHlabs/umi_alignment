@@ -42,31 +42,3 @@ bait_regions: /Path/to/bait_regions.bed # Bed file containing the bait regions f
 
 chrom_sizes: /Path/to/chrom_sizes.tsv # Tab separated file containing the chromosome names and their lengths should match the reference genome
 dict_genome: /Path/to/genome.dict # Dictionary file for the reference genome
-
-#Parameters for Read_Grouping
-group_allowed_edits: 0
-group_min_mapq: 20
-group_strategy: Adjacency
-
-# Configuration for consensus calling
-consensus_min_reads: 1
-consensus_min_base_qual: 2
-consensus_min_input_base_mapq: 10
-consensus_error_rate_pre_umi: 45
-consensus_error_rate_post_umi: 30
-
-# Configuration for consensus filter
-filter_min_reads: 3
-filter_min_base_qual: 2
-filter_max_base_error_rate: 0.1
-filter_max_read_error_rate: 0.05
-filter_max_no_call_fraction: 0.2
-
-# Configuration when UMI present in R1 and R2 files
-read_structure: 8M143T 8M143T
-
-# Correct UMI based on list of UMI's
-correct_umi: True
-correct_umi_max_mismatches: 3
-correct_umi_min_distance: 1
-umi_file: /path/to/umi.txt
