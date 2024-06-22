@@ -232,14 +232,17 @@ rule realign:
     output:
         bam=temp(wrkdir / "alignments" / "{sample}.cons.filtered.realigned.bam"),
         bai=temp(wrkdir / "alignments" / "{sample}.cons.filtered.realigned.bam.bai"),
-    threads: 8
+    threads: 12
     resources:
-        mem_mb=26000,
+        mem_mb=22000,  # 8GB for BWA, 4GB for fgbio, 8GB for samtools sort and an overhead memory of 2GB
         runtime=72 * 60,
         nodes=1,
-        mem_fgbio=8000,
-        mem_samtools=1000,
+        mem_fgbio=4000,
+        mem_samtools=2000,
         tmpdir=scratch_dir,
+    params:
+        samtools_threads=4,
+        bwa_threads=8,
     conda:
         "../envs/fgbio.yaml"
     log:
@@ -249,11 +252,11 @@ rule realign:
     shell:
         "("
         "samtools fastq {input.bam} "
-        "| bwa mem -K 150000000 -Y -t {threads} -p {input.ref} - "
+        "| bwa mem -K 150000000 -Y -t {params.bwa_threads} -p {input.ref} - "
         "| fgbio -Djava.io.tmpdir={resources.tmpdir} -Xmx{resources.mem_fgbio}m --compression 0 --async-io ZipperBams "
         "--unmapped {input.bam} "
         "--ref {input.ref} "
         "--tags-to-reverse Consensus "
         "--tags-to-revcomp Consensus "
-        "| samtools sort --threads {threads} -m{resources.mem_samtools}m -o {output.bam}##idx##{output.bai} --write-index "
+        "| samtools sort --threads {params.samtools_threads} -m{resources.mem_samtools}m -T {resources.tmpdir} -o {output.bam}##idx##{output.bai} --write-index "
         ") &> {log} "
