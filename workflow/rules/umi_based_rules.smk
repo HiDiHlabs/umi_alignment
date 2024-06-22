@@ -107,9 +107,32 @@ rule call_consensus_reads:
         "&> {log}"
 
 
-rule filter_consensus_reads:
+rule sort_name_index:
     input:
         bam=wrkdir / "alignments" / "{sample}.cons.unmapped.bam",
+    output:
+        bam=temp(wrkdir / "alignments" / "{sample}.cons.unmapped.sorted.bam"),
+    conda:
+        "../envs/samtools.yaml"
+    threads: 8
+    resources:
+        mem_mb=8000,
+        runtime=24 * 60,
+        nodes=1,
+        tmpdir=scratch_dir,
+    log:
+        logdir / "samtools/{sample}_sort_name.log",
+    message:
+        "Sorting and indexing  concensus bam file"
+    shell:
+        " ( "
+        " samtools sort --threads 8  -n -u -T {resources.tmpdir} -o {output.bam} {input.bam} "
+        " ) &> {log} "
+
+
+rule filter_consensus_reads:
+    input:
+        bam=wrkdir / "alignments" / "{sample}.cons.unmapped.sorted.bam",
         ref=genome,
     output:
         bam=temp(wrkdir / "alignments" / "{sample}.cons.filtered.bam"),
@@ -133,9 +156,8 @@ rule filter_consensus_reads:
         "Filtering consensus reads and sorting into coordinate order."
     shell:
         "("
-        "samtools sort -n -u {input.bam} | "
         "fgbio -Djava.io.tmpdir={resources.tmpdir} -Xmx{resources.mem_mb}m --compression 1 FilterConsensusReads "
-        "--input /dev/stdin "
+        "--input {input.bam} "
         "--output {output.bam} "
         "--ref {input.ref} "
         "--min-reads {params.min_reads} "
