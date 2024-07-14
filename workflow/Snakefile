@@ -25,10 +25,10 @@ include: "rules/recalibration.smk"  #done
 
 rule all:
     input:
-        expand(
-            wrkdir / "alignments" / "{sample}_merged_umi_annot.bam",
-            sample=config["sample"],
-        ),
+        # expand(
+        #     wrkdir / "alignments" / "{sample}_merged_umi_annot.bam",
+        #     sample=config["sample"],
+        # ),
         expand(
             wrkdir / "alignments" / "{sample}_dedup.recall.sorted.bam",
             sample=config["sample"],
