@@ -15,9 +15,9 @@ rule fix_mate:
         ),
     output:
         bam=temp(wrkdir / "alignments" / "{sample}_mate_fix.bam"),
-    threads: 2
+    threads: 1
     resources:
-        mem_mb=8000,
+        mem_mb=50000,
         runtime=72 * 60,
         nodes=1,
         tmpdir=scratch_dir,
@@ -28,11 +28,11 @@ rule fix_mate:
     message:
         "Fixing mate information if required"
     shell:
-        "fgbio -Djava.io.tmpdir={resources.tmpdir} -Xmx{resources.mem_mb}m --compression 1 --async-io SetMateInformation "
+        "(fgbio -Djava.io.tmpdir={resources.tmpdir} -Xmx{resources.mem_mb}m --compression 1 --async-io SetMateInformation "
         "--input {input.bam} "
         "--output {output.bam} "
-        "--allow-missing-mates true"
-        "&> {log} "
+        "--allow-missing-mates true )"
+        " &> {log} "
 
 
 rule group_reads:
@@ -49,7 +49,7 @@ rule group_reads:
         min_mapq=group_min_mapq,
     threads: 2
     resources:
-        mem_mb=8000,
+        mem_mb=50000,
         runtime=72 * 60,
         nodes=1,
         tmpdir=scratch_dir,
@@ -70,21 +70,28 @@ rule group_reads:
         "&> {log} "
 
 
-rule call_consensus_reads:
+rule call_filter_consensus_reads:
     input:
         bam=wrkdir / "alignments" / "{sample}_merged_aln_umi_annot_sorted_grouped.bam",
+        ref=genome,
     output:
-        bam=temp(wrkdir / "alignments" / "{sample}.cons.unmapped.bam"),
+        bam=temp(wrkdir / "alignments" / "{sample}.cons.filtered.bam"),
         metrics=logdir / "fgbio/call_consensus_reads.{sample}.log",
     params:
         min_reads=consensus_min_reads,
-        min_base_qual=consensus_min_base_qual,
         min_input_base_mapq=consensus_min_input_base_mapq,
         error_rate_post_umi=consensus_error_rate_post_umi,
         error_rate_pre_umi=consensus_error_rate_pre_umi,
-    threads: 4
+        filter_min_reads=filter_min_reads,
+        min_base_qual=filter_min_base_qual,
+        max_base_error_rate=filter_max_base_error_rate,
+        max_read_error_rate=filter_max_read_error_rate,
+        max_no_call_fraction=filter_max_no_call_fraction,
+        memory_consensus=25000,
+        memory_filter=25000,
+    threads: 24
     resources:
-        mem_mb=4000,
+        mem_mb=50000,
         runtime=72 * 60,
         nodes=1,
         tmpdir=scratch_dir,
@@ -95,15 +102,22 @@ rule call_consensus_reads:
     message:
         "Calling consensus reads from grouped reads."
     shell:
-        "fgbio -Djava.io.tmpdir={resources.tmpdir} -Xmx{resources.mem_mb}m --compression 0 CallMolecularConsensusReads "
+        "( fgbio -Djava.io.tmpdir={resources.tmpdir} -Xmx{params.memory_consensus}m --compression 0 CallMolecularConsensusReads "
         "--input {input.bam} "
-        "--output {output.bam} "
+        "--output /dev/stdout "
         "--min-reads {params.min_reads} "
         "--error-rate-pre-umi {params.error_rate_pre_umi} "
         "--error-rate-post-umi {params.error_rate_post_umi} "
-        "--min-consensus-base-quality {params.min_base_qual} "
         "--min-input-base-quality {params.min_input_base_mapq} "
-        "--threads {threads} "
+        "--threads {threads} | fgbio -Djava.io.tmpdir={resources.tmpdir} -Xmx{params.memory_filter}m --compression 1 FilterConsensusReads "
+        "--input /dev/stdin "
+        "--output {output.bam} "
+        "--ref {input.ref} "
+        "--min-reads {params.filter_min_reads} "
+        "--max-read-error-rate {params.max_read_error_rate} "
+        "--max-base-error-rate {params.max_base_error_rate} "
+        "--min-base-quality {params.min_base_qual} "
+        "--max-no-call-fraction {params.max_no_call_fraction} ) "
         "&> {log}"
 
 
@@ -115,8 +129,10 @@ rule sort_name_index:
     conda:
         "../envs/samtools.yaml"
     threads: 8
+    params:
+        mem_thread=8000,
     resources:
-        mem_mb=8000,
+        mem_mb=8 * 8000,
         runtime=24 * 60,
         nodes=1,
         tmpdir=scratch_dir,
@@ -126,16 +142,16 @@ rule sort_name_index:
         "Sorting and indexing  concensus bam file"
     shell:
         " ( "
-        " samtools sort --threads 8  -n -u -T {resources.tmpdir} -o {output.bam} {input.bam} "
+        " samtools sort --threads 8 -m{params.mem_thread}m -n -u -T {resources.tmpdir} -o {output.bam} {input.bam} "
         " ) &> {log} "
 
 
 rule filter_consensus_reads:
     input:
-        bam=wrkdir / "alignments" / "{sample}.cons.unmapped.sorted.bam",
+        bam=wrkdir / "alignments" / "{sample}.cons.unmapped#.bam",
         ref=genome,
     output:
-        bam=temp(wrkdir / "alignments" / "{sample}.cons.filtered.bam"),
+        bam=temp(wrkdir / "alignments" / "{sample}.cons.filtered#.bam"),
     params:
         min_reads=filter_min_reads,
         min_base_qual=filter_min_base_qual,
@@ -144,7 +160,7 @@ rule filter_consensus_reads:
         max_no_call_fraction=filter_max_no_call_fraction,
     threads: 8
     resources:
-        mem_mb=8000,
+        mem_mb=50000,
         runtime=72 * 60,
         nodes=1,
         tmpdir=scratch_dir,
