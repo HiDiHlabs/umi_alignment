@@ -12,7 +12,7 @@ rule baseRecalibrator:
         "../envs/gatk.yaml"
     threads: 8
     resources:
-        mem_mb=8000,
+        mem_mb=50000,
         runtime=72 * 60,
         nodes=1,
         tmpdir=scratch_dir,
@@ -41,8 +41,10 @@ rule sort_index:
     conda:
         "../envs/samtools.yaml"
     threads: 8
+    params:
+        mem_thread=8000,
     resources:
-        mem_mb=8000,
+        mem_mb=8 * 8000,
         runtime=24 * 60,
         nodes=1,
         tmpdir=scratch_dir,
@@ -52,5 +54,5 @@ rule sort_index:
         "Sorting and indexing recalibrated bam file"
     shell:
         " ( "
-        " samtools sort --threads 8 -o {output.bam}##idx##{output.bai} {input.bam} -T {resources.tmpdir} --write-index"
+        " samtools sort --threads 8 -m{params.mem_thread}m -o {output.bam}##idx##{output.bai} {input.bam} -T {resources.tmpdir} --write-index"
         " ) &> {log} "

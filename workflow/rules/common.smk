@@ -123,6 +123,9 @@ else:
     scratch_dir = config[
         "scratch_dir"
     ]  # snakemake doesnt accept path in resources has to be a string
+    if not os.path.exists(scratch_dir):
+        print(get_data_time(), "Scratch directory does not exist")
+        os.makedirs(scratch_dir)
 
 print(get_data_time(), "Setting working directory to %s" % wrkdir)
 print(get_data_time(), "Setting log directory to %s" % logdir)
@@ -270,10 +273,11 @@ else:
     filter_min_reads = config["filter_min_reads"]
 
 if "filter_min_base_qual" not in config:
-    print(get_data_time(), "Setting default value for filter_min_base_qual to 40")
-    filter_min_base_qual = 40
+    filter_min_base_qual = 10
 else:
     filter_min_base_qual = config["filter_min_base_qual"]
+
+print(get_data_time(), "Setting filter_min_base_qual to %s" % filter_min_base_qual)
 
 if "filter_max_base_error_rate" not in config:
     print(
@@ -284,10 +288,12 @@ else:
     filter_max_base_error_rate = config["filter_max_base_error_rate"]
 
 if "filter_max_read_error_rate" not in config:
-    print(
-        get_data_time(), "Setting default value for filter_max_base_error_rate to 0.1"
-    )
     filter_max_read_error_rate = 0.1
+    print(
+        get_data_time(),
+        "Setting default value for filter_max_base_error_rate to %s "
+        % filter_max_read_error_rate,
+    )
 else:
     filter_max_read_error_rate = config["filter_max_read_error_rate"]
 

@@ -161,9 +161,9 @@ rule bwa_map:
         ),
     output:
         temp(wrkdir / "alignments" / "{run_id}" / "{sample}_aln_{lane}.bam"),
-    threads: 8
+    threads: 24
     resources:
-        mem_mb=15000,
+        mem_mb=24000,
         runtime=72 * 60,
         nodes=1,
         tmpdir=scratch_dir,
@@ -205,8 +205,8 @@ rule merge:
             lane=LANE,
         ),
     output:
-        bam=wrkdir / "alignments" / "{sample}_merged_umi_annot.bam",
-    threads: 8
+        bam=temp(wrkdir / "alignments" / "{sample}_merged_umi_annot.bam"),
+    threads: 24
     resources:
         mem_mb=8000,
         runtime=72 * 60,
@@ -219,7 +219,7 @@ rule merge:
     log:
         logdir / "samtools/{sample}_merge.log",
     shell:
-        "(samtools merge -f {output.bam} {input}) &> {log} "
+        "(samtools merge --threads {threads} -f {output.bam} {input}) &> {log} "
 
 
 rule realign:
@@ -232,17 +232,17 @@ rule realign:
     output:
         bam=temp(wrkdir / "alignments" / "{sample}.cons.filtered.realigned.bam"),
         bai=temp(wrkdir / "alignments" / "{sample}.cons.filtered.realigned.bam.bai"),
-    threads: 12
+    threads: 28
     resources:
-        mem_mb=22000,  # 8GB for BWA, 4GB for fgbio, 8GB for samtools sort and an overhead memory of 2GB
+        mem_mb=80000,  # 8GB for BWA, 4GB for fgbio, 64GB for samtools sort and an overhead memory of 2GB
         runtime=72 * 60,
         nodes=1,
         mem_fgbio=4000,
-        mem_samtools=2000,
+        mem_samtools=8000,
         tmpdir=scratch_dir,
     params:
-        samtools_threads=4,
-        bwa_threads=8,
+        samtools_threads=8,
+        bwa_threads=24,
     conda:
         "../envs/fgbio.yaml"
     log:

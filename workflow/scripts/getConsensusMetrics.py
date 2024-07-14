@@ -18,7 +18,7 @@ with open(snakemake.input[0]) as handle:
                 else:
                     line=line.split(']')[-1].split('(')[0].replace('.', '').replace(i, '').replace(',','').replace(' ', '').strip()
                 line=int(line)
-                consensus_df.loc['T-NHL_98_malign', i]=line
+                consensus_df.loc[snakemake.params['sample'], i]=line
                 break
 
 consensus_df.to_csv(snakemake.output[0], sep='\t', index=True)
