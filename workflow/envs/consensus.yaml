@@ -1,0 +1,6 @@
+name: consensus
+channels:
+  - conda-forge
+dependencies:
+  - pandas=2.2.2
+  - python=3.11

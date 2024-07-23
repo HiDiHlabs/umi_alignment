@@ -7,9 +7,10 @@ rule coveragePlot:
         plot=wrkdir / "metrics" / "{sample}_coverage.png",
     threads: 20
     resources:
-        mem_mb=10000,
+        mem_mb=60000,
         runtime=24 * 60,
         nodes=1,
+        tmpdir=scratch_dir,
     conda:
         "../envs/coveragePlot.yaml"
     log:

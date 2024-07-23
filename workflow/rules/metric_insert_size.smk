@@ -12,6 +12,7 @@ rule InsertSize:
         mem_mb=8000,
         runtime=24 * 60,
         nodes=1,
+        tmpdir=scratch_dir,
     log:
         logdir / "picard/{sample}_insert_size.log",
     message:

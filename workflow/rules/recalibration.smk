@@ -1,19 +1,21 @@
 rule baseRecalibrator:
     input:
-        bam=wrkdir / "alignments" / "{sample}_dedup.bam",
+        bam=wrkdir / "alignments" / "{sample}.cons.filtered.realigned.bam",
         dbsnp=dbsnp,
         genome=genome,
     output:
         table=wrkdir / "metrics" / "{sample}_recal_data.table",
         bam=temp(wrkdir / "alignments" / "{sample}_dedup.recall.bam"),
+        bai=temp(wrkdir / "alignments" / "{sample}_dedup.recall.bai"),
         analyse_covariates=wrkdir / "metrics" / "{sample}_covariates.pdf",
     conda:
         "../envs/gatk.yaml"
     threads: 8
     resources:
-        mem_mb=8000,
-        runtime=24 * 60,
+        mem_mb=50000,
+        runtime=72 * 60,
         nodes=1,
+        tmpdir=scratch_dir,
     log:
         logdir / "gatk/{sample}_recal.log",
     message:
@@ -39,15 +41,18 @@ rule sort_index:
     conda:
         "../envs/samtools.yaml"
     threads: 8
+    params:
+        mem_thread=8000,
     resources:
-        mem_mb=8000,
+        mem_mb=8 * 8000,
         runtime=24 * 60,
         nodes=1,
+        tmpdir=scratch_dir,
     log:
         logdir / "samtools/{sample}_sort.log",
     message:
         "Sorting and indexing recalibrated bam file"
     shell:
         " ( "
-        " samtools sort --threads 8 -o {output.bam}##idx##{output.bai} {input.bam} --write-index"
+        " samtools sort --threads 8 -m{params.mem_thread}m -o {output.bam}##idx##{output.bai} {input.bam} -T {resources.tmpdir} --write-index"
         " ) &> {log} "
