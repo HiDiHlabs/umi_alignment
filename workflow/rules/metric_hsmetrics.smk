@@ -62,6 +62,8 @@ if seq_type in ["Panel", "WES"]:
             genome=genome,
         output:
             target=wrkdir / "metrics" / "{sample}.hs_metrics.txt",
+        params:
+            max_coverage=max_coverage,
         conda:
             "../envs/gatk.yaml"
         threads: 1
@@ -75,4 +77,4 @@ if seq_type in ["Panel", "WES"]:
         log:
             logdir / "picard/{sample}.hs_metrics.log",
         shell:
-            "gatk CollectHsMetrics -I {input.bam} -O {output.target} -R {input.genome} -TI {input.target_intervals} -BI {input.bait_intervals} &> {log}"
+            "gatk CollectHsMetrics -I {input.bam} -O {output.target} -R {input.genome} -TI {input.target_intervals} -BI {input.bait_intervals} --COVERAGE_CAP {params.max_coverage} &> {log}"

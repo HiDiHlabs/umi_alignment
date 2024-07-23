@@ -306,6 +306,13 @@ else:
     filter_max_no_call_fraction = config["filter_max_no_call_fraction"]
 
 
+if "max_coverage" not in config:
+    print(get_data_time(), "Setting default value for max_coverage to 10000")
+    max_coverage = 10000
+else:
+    max_coverage = config["max_coverage"]
+
+
 # Create a set of valid combination for run lane and read ids
 
 LANE = metadata["LANE_NO"].unique().tolist()
