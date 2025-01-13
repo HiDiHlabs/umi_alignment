@@ -93,29 +93,28 @@ Please modify the entry for
 
 16. `dict_genome`: An absolute path to dict file for the given genomes, ignored if `SeqType` is `WGS`
 
+# http://fulcrumgenomics.github.io/fgbio/tools/latest/GroupReadsByUmi.html
 17. `group_allowed_edits`: Number of edit allowed when grouping based on umi. defaults to  0, should be set to zero if correct_umi is true
 18. `group_min_mapq: 20`: Set `--min-map-q` of groupReadsByUMI
 19. `group_strategy`: Set the `--strategy` param of groupReadsByUMI deafults to `Adjacency`
 
-
+# https://fulcrumgenomics.github.io/fgbio/tools/latest/CallMolecularConsensusReads.html
 20. `consensus_min_reads`: 1
 21. `consensus_min_base_qual`: 2
 22. `consensus_min_input_base_mapq`: 10
 23. `consensus_error_rate_pre_umi`: 45
 24. `consensus_error_rate_post_umi`: 30
-
-
 25. `filter_min_reads`: 3
 26. `filter_min_base_qual`: 2
 27. `filter_max_base_error_rate`: 0.1
 28. `filter_max_read_error_rate`: 0.05
 29. `filter_max_no_call_fraction`: 0.2
 
+# http://fulcrumgenomics.github.io/fgbio/tools/latest/FastqToBam.html
+30. `read_structure`: 8M143T 8M143T  
 
-30. `read_structure`: 8M143T 8M143T
-
-
-31. `correct_umi`: True
+# http://fulcrumgenomics.github.io/fgbio/tools/latest/CorrectUmis.html
+31. `correct_umi`: False
 32. `correct_umi_max_mismatches`: 3
 33. `correct_umi_min_distance`: 1
 34. `umi_file`:
