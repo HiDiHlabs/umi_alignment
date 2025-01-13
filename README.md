@@ -104,6 +104,8 @@ Please modify the entry for
 22. `consensus_min_input_base_mapq`: 10
 23. `consensus_error_rate_pre_umi`: 45
 24. `consensus_error_rate_post_umi`: 30
+
+# https://fulcrumgenomics.github.io/fgbio/tools/latest/FilterConsensusReads.html
 25. `filter_min_reads`: 3
 26. `filter_min_base_qual`: 2
 27. `filter_max_base_error_rate`: 0.1
