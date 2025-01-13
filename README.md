@@ -113,7 +113,7 @@ Please modify the entry for
 29. `filter_max_no_call_fraction`: 0.2
 
 # http://fulcrumgenomics.github.io/fgbio/tools/latest/FastqToBam.html
-30. `read_structure`: 8M143T 8M143T  
+30. `read_structure`: 8M143T 8M143T
 
 # http://fulcrumgenomics.github.io/fgbio/tools/latest/CorrectUmis.html
 31. `correct_umi`: False
