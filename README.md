@@ -120,5 +120,3 @@ Please modify the entry for
 32. `correct_umi_max_mismatches`: 3
 33. `correct_umi_min_distance`: 1
 34. `umi_file`:
-
-
