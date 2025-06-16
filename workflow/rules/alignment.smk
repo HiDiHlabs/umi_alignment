@@ -47,6 +47,7 @@ rule fastqbam:
     params:
         library=library_prep_kit,
         read_structure="--read-structures " + read_structure if read_structure else "",
+        read_group=lambda wc: (wc.run_id + "_" + wc.lane + "_" + wc.sample),
     threads: 1
     resources:
         mem_mb=8000,
@@ -66,6 +67,7 @@ rule fastqbam:
         "--sample {wildcards.sample} "
         "--library {params.library} "
         "--output {output} {params.read_structure} "
+        "--read-group-id {params.read_group}"
         ") &> {log}"
 
 
