@@ -29,7 +29,7 @@ rule fastqbam:
                 if config["trim_adapters"]
                 else (wrkdir / "fastq" / "{run_id}" / "{sample}_R2_{lane}.fastq.gz")
             )
-            if read_structure
+            if read_structure or extract_umis_from_read_names
             else (
                 (
                     wrkdir
@@ -47,6 +47,11 @@ rule fastqbam:
     params:
         library=library_prep_kit,
         read_structure="--read-structures " + read_structure if read_structure else "",
+        extract_umis_from_read_names=(
+            "--extract-umis-from-read-names true"
+            if extract_umis_from_read_names
+            else ""
+        ),
         read_group=lambda wc: (wc.run_id + "_" + wc.lane + "_" + wc.sample),
     threads: 1
     resources:
@@ -66,7 +71,7 @@ rule fastqbam:
         "--input {input.fastq_r1} {input.fastq_r3} "
         "--sample {wildcards.sample} "
         "--library {params.library} "
-        "--output {output} {params.read_structure} "
+        "--output {output} {params.read_structure} {params.extract_umis_from_read_names} "
         "--read-group-id {params.read_group}"
         ") &> {log}"
 
@@ -116,7 +121,7 @@ if correct_umi:
             "--dont-store-original-umis ) &> {log}"
 
 
-if not read_structure:
+if not (read_structure or extract_umis_from_read_names):
     print("Hi")
 
     rule AnnotateUMI:
@@ -198,7 +203,7 @@ rule merge:
             sample=config["sample"],
             lane=LANE,
         )
-        if read_structure
+        if read_structure or extract_umis_from_read_names
         else expand(
             wrkdir / "alignments" / "{run_id}" / "{sample}_aln_{lane}_umi_annot.bam",
             filtered_product,

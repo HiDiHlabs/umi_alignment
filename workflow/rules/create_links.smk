@@ -3,6 +3,7 @@ rule create_links_files:
         metadata=config["metadata"],
         fastq_dir=wrkdir / "fastq",
         read_structure=read_structure,
+        extract_umis_from_read_names=extract_umis_from_read_names,
     resources:
         mem_mb=1000,
         runtime=20,
@@ -30,7 +31,7 @@ rule create_links_files:
                 sample=config["sample"],
                 lane=LANE,
             )
-            if not read_structure
+            if not (read_structure or extract_umis_from_read_names)
             else []
         ),
     message:
@@ -41,7 +42,7 @@ rule create_links_files:
             (metadata["SAMPLE_TYPE"] == config["sample"])
             & (metadata["PATIENT_ID"] == config["pid"])
         ]
-        if params.read_structure:
+        if params.read_structure or params.extract_umis_from_read_names:
             if metadata["READ"].nunique() != 2:
                 raise ValueError("Read structure is provided but R1 R2 and R3 provided")
         else:

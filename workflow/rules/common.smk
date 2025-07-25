@@ -148,6 +148,17 @@ if "read_structure" in config:
 else:
     read_structure = False
 
+if "extract_umis_from_read_names" in config:
+    print(
+        get_data_time(),
+        "UMI's will be extracted from the read names",
+    )
+    extract_umis_from_read_names = config["extract_umis_from_read_names"]
+    if extract_umis_from_read_names == "":
+        raise ValueError("extract_umis_from_read_names defined but no value provided")
+else:
+    extract_umis_from_read_names = False
+
 
 #########################################################################
 ############# Setting variables related to trimming #####################
