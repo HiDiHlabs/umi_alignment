@@ -40,7 +40,7 @@ rule cutadapt:
         fastq_r1=wrkdir / "fastq" / "{run_id}" / "{sample}_R1_{lane}.fastq.gz",
         fastq_r3=(
             wrkdir / "fastq" / "{run_id}" / "{sample}_R2_{lane}.fastq.gz"
-            if read_structure
+            if read_structure or extract_umis_from_read_names
             else wrkdir / "fastq" / "{run_id}" / "{sample}_R3_{lane}.fastq.gz"
         ),
     output:
@@ -52,17 +52,21 @@ rule cutadapt:
             / "{sample}_R1_{lane}_trim.fastq.gz"
         ),
         fastq_r3=temp(
-            wrkdir
-            / "fastq"
-            / "{run_id}"
-            / "cutadapt"
-            / "{sample}_R2_{lane}_trim.fastq.gz"
-            if read_structure
-            else wrkdir
-            / "fastq"
-            / "{run_id}"
-            / "cutadapt"
-            / "{sample}_R3_{lane}.fastq.gz"
+            (
+                wrkdir
+                / "fastq"
+                / "{run_id}"
+                / "cutadapt"
+                / "{sample}_R2_{lane}_trim.fastq.gz"
+            )
+            if read_structure or extract_umis_from_read_names
+            else (
+                wrkdir
+                / "fastq"
+                / "{run_id}"
+                / "cutadapt"
+                / "{sample}_R3_{lane}.fastq.gz"
+            )
         ),
     log:
         logdir / "cutadapt/{run_id}_{sample}_R1_{lane}.log",
