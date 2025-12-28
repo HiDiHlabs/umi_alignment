@@ -1,6 +1,7 @@
 rule coveragePlot:
     input:
-        bam=wrkdir / "alignments" / "{sample}_dedup.recall.sorted.bam",
+        bam=wrkdir / "alignments" / "{sample}_13-Sorted.bam",
+        bai=os.path.join(wrkdir, alignment_dir, "{sample}_13-Sorted.bam.bai"),
     params:
         binsize=50,
     output:

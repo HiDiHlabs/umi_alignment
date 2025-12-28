@@ -1,13 +1,22 @@
+import os
 print(
     """
     \tAlignment pipeline for UMI based sequencing reads
-    \tAuthor: Shashwat Sahay
-    \tEmail: shashwat.sahay@charite.de
-    \tVersion: 0.2.0
-
     """
+    # \tAuthor: Shashwat Sahay
+    # \tEmail: shashwat.sahay@charite.de
+    # \tVersion: 0.2.0
+
+    # """
 )
 
+
+### Folder Setup ###
+alignment_dir = "alignments"
+metrics_dir = "metrics"
+fastq_dir = "fastq"
+cutadapt_dir = "cutadapt"
+split_dir = "splits"
 
 def get_data_time():
     now = datetime.now()
@@ -33,8 +42,8 @@ if "metadata" not in config:
 else:
     metadata = pd.read_csv(config["metadata"])
     metadata = metadata[
-        (metadata["SAMPLE_TYPE"] == config["sample"])
-        & (metadata["PATIENT_ID"] == config["pid"])
+        (metadata["SAMPLE_NAME"] == config["sample"])
+        # & (metadata["PATIENT_ID"] == config["pid"])
     ]
     if metadata.shape[0] == 0:
         raise ValueError(
@@ -132,22 +141,35 @@ print(get_data_time(), "Setting log directory to %s" % logdir)
 print(get_data_time(), "Setting temp directory to %s" % scratch_dir)
 
 
+####### Setup n_splits #####
+
+if "n_splits" in config:
+    n_splits=config["n_splits"]
+else:
+    n_splits=1
+
+
+
+
 #########################################################################
 ############# Check if UMIs have been demultiplexed #####################
 #########################################################################
 
 if "read_structure" in config:
-    print(
-        get_data_time(),
-        "Read structure has been provided expecting only R1 and R2 files for each sample and lane",
-    )
     read_structure = config["read_structure"]
-    print(read_structure)
-    if read_structure == "":
-        raise ValueError("Read structure defined but not provided")
+    if read_structure is not None or read_structure == "" or read_structure==False:
+        print(
+            get_data_time(),
+            "Read structure has been provided expecting only R1 and R2 files for each sample and lane",
+        )
+        print(read_structure)
+    else:
+        print("Read structure defined but not provided, will assume read sturcutre not given")
+        print("Given Read structure", read_structure)
+        read_structure=False
 else:
     read_structure = False
-
+print("Set Read structure",read_structure)
 
 #########################################################################
 ############# Setting variables related to trimming #####################
@@ -157,17 +179,21 @@ if "trim_adapters" not in config or (not config["trim_adapters"]):
     print(get_data_time(), "Adapter trimming has been turned off")
     config["trim_adapters"] = False
     adapter_seq_r1 = None
-    adapter_seq_r3 = None
+    adapter_seq_r2 = None
 else:
     if config["trim_adapters"]:
         if "Adapter_R1" not in config:
             raise ValueError("Adapter sequence for R1 not provided")
         else:
             adapter_seq_r1 = config["Adapter_R1"]
-        if "Adapter_R3" not in config:
-            raise ValueError("Adapter sequence for R3 not provided")
+        if "Adapter_R2" not in config:
+            raise ValueError("Adapter sequence for R2 not provided")
         else:
-            adapter_seq_r3 = config["Adapter_R3"]
+            adapter_seq_r2 = config["Adapter_R2"]
+if "cutadapt_params" not in config:
+    cutadapt_params = ""
+else:
+    cutadapt_params = config["cutadapt_params"]
 
 ##########################################################################
 ############# Setting variables related to UMI correction ################
@@ -223,6 +249,25 @@ if "group_min_mapq" not in config:
     group_min_mapq = 20
 else:
     group_min_mapq = config["group_min_mapq"]
+
+if "duplex_read_structure" not in config:
+    duplex_read_structure = False
+else:
+    duplex_read_structure = config["duplex_read_structure"]
+
+
+if "include_secondary_GroupReadsByUmi" not in config:
+    print(get_data_time(), "Setting default value for include_secondary_GroupReadsByUmi to False")
+    include_secondary_GroupReadsByUmi = False
+else:
+    include_secondary_GroupReadsByUmi = config["include_secondary_GroupReadsByUmi"]
+
+if "include_supplementary_GroupReadsByUmi" not in config:
+    print(get_data_time(), "Setting default value for include_supplementary_GroupReadsByUmi to False")
+    include_supplementary_GroupReadsByUmi = False
+else:
+    include_supplementary_GroupReadsByUmi = config["include_supplementary_GroupReadsByUmi"]
+
 
 
 ##########################################################################
@@ -317,7 +362,8 @@ else:
 
 LANE = metadata["LANE_NO"].unique().tolist()
 RUN_ID = metadata["RUN_ID"].unique().tolist()
-
+print(LANE)
+print(RUN_ID)
 
 def filter_combinator(combinator, allow_list):
     def filtered_combinator(*args, **kwargs):
@@ -330,13 +376,26 @@ def filter_combinator(combinator, allow_list):
 
 
 allow_list = set()
+allow_dict_list = []
+split_list =  [f'{n:03}' for n in range(1, n_splits+1)] if n_splits not in [0, 1, "0", "1"] else ["000"]
+run_id_list = []
+sample_list = []
+lane_list = []
+split_num_list = []
 for run_id in RUN_ID:
     for lane in metadata[metadata.RUN_ID == run_id]["LANE_NO"].unique().tolist():
-        allow_list.add(
-            frozenset(
-                {("run_id", run_id), ("sample", config["sample"]), ("lane", lane)}
+        for split in split_list:
+            allow_list.add(
+                frozenset(
+                    {("run_id", run_id), ("sample", config["sample"]), ("lane", lane), ("split", split)}
+                )
             )
-        )
+            allow_dict_list.append({"run_id": run_id, "sample": config["sample"], "lane": lane, "split": split})
 
+allow_dict_of_lists = {
+    key: [d[key] for d in allow_dict_list]
+    for key in allow_dict_list[0].keys()
+}
 
-filtered_product = filter_combinator(product, allow_list)
+# filtered_product = filter_combinator(product, allow_list)
+# print(list(filtered_product))

@@ -9,80 +9,59 @@ import tempfile
 container: "docker://condaforge/mambaforge"
 
 
-include: "rules/common.smk"  #done
-include: "rules/create_links.smk"
-include: "rules/umi_based_rules.smk"  #done
-include: "rules/adapter_trimming.smk"  #done
-include: "rules/alignment.smk"  #done
+include: "rules/00_common.smk"  #done
+include: "rules/01_create_links.smk"
+include: "rules/04_umi_based_rules.smk"  #done
+include: "rules/02_adapter_trimming.smk"  #done
+include: "rules/03_alignment.smk"  #done
 #  include: "rules/duplicate_marking.smk"  #done
-include: "rules/flagstatt.smk"  #done
-include: "rules/metric_hsmetrics.smk"  #done
-include: "rules/metric_insert_size.smk"  #done
-include: "rules/metric_mosdepth.smk"  #done
-include: "rules/metric_wgs_coverage.smk"  #done
-include: "rules/recalibration.smk"  #done
+include: "rules/06_flagstatt.smk"  #done
+include: "rules/06_metric_hsmetrics.smk"  #done
+include: "rules/06_metric_insert_size.smk"  #done
+include: "rules/06_metric_mosdepth.smk"  #done
+include: "rules/06_metric_wgs_coverage.smk"  #done
+include: "rules/05_recalibration.smk"  #done
+include: "rules/02_fastqc.smk"
 
 
 rule all:
     input:
         # expand(
-        #     wrkdir / "alignments" / "{sample}_merged_umi_annot.bam",
+        #     os.path.join(wrkdir, alignement_dir, "{sample}_merged_umi_annot.bam",
         #     sample=config["sample"],
         # ),
-        expand(
-            wrkdir / "alignments" / "{sample}_dedup.recall.sorted.bam",
-            sample=config["sample"],
-        ),
-        expand(
-            wrkdir / "alignments" / "{sample}_dedup.recall.sorted.bam.bai",
-            sample=config["sample"],
-        ),
-        expand(
-            wrkdir / "metrics" / "{sample}.mosdepth.global.dist.txt",
-            sample=config["sample"],
-        ),
-        expand(
-            wrkdir / "metrics" / "{sample}_{ext}.flagstat",
-            sample=config["sample"],
-            ext=["dedup.recall.sorted"],
-        ),
-        expand(
-            wrkdir / "metrics" / "{sample}_insert_size_metrics.txt",
-            sample=config["sample"],
-        ),
-        expand(wrkdir / "metrics" / "{sample}_insert_size.pdf", sample=config["sample"]),
-        expand(
-            wrkdir / "metrics" / "{sample}.mosdepth.summary.txt",
-            sample=config["sample"],
-        ),
-        expand(
-            wrkdir / "metrics" / "{sample}.grouped-family-sizes.txt",
-            sample=config["sample"],
-        ),
-        expand(
-            wrkdir / "metrics" / "{sample}_recal_data.table", sample=config["sample"]
-        ),
-        expand(wrkdir / "metrics" / "{sample}_covariates.pdf", sample=config["sample"]),
-        expand(wrkdir / "metrics" / "{sample}_coverage.png", sample=config["sample"])
-        if config["SeqType"] not in ["Panel", "WES"]
-        else [],
-        expand(wrkdir / "metrics" / "{sample}.hs_metrics.txt", sample=config["sample"])
-        if config["SeqType"] in ["Panel", "WES"]
-        else [],
-        expand(
-            wrkdir
-            / "metrics"
-            / "correct_umi"
-            / "{run_id}"
-            / "{sample}_{lane}_umi_metrics.txt",
-            filtered_product,
-            run_id=RUN_ID,
-            sample=config["sample"],
-            lane=LANE,
-        )
-        if correct_umi
-        else [],
-        expand(
-            wrkdir / "metrics" / "{sample}_consensus_metrics.tsv",
-            sample=config["sample"],
-        ),
+        final_bam = expand(os.path.join(wrkdir, alignment_dir, "{sample}_13-Sorted.bam"), sample=config["sample"]),
+        final_bai = expand(os.path.join(wrkdir, alignment_dir, "{sample}_13-Sorted.bam.bai"), sample=config["sample"]),
+        mosdepth = expand(os.path.join(wrkdir, metrics_dir, "{sample}.mosdepth.global.dist.txt"), sample=config["sample"]),
+        flagstats = expand(os.path.join(wrkdir, metrics_dir, "{sample}_{ext}.flagstat"),
+                           sample=config["sample"], ext=["06-merged", "13-Sorted"]
+                          ),
+        insert_sizes = expand(os.path.join(wrkdir, metrics_dir, "{sample}_insert_size_metrics.txt"), sample=config["sample"]),
+        insert_sizes_pdf = expand(os.path.join(wrkdir, metrics_dir, "{sample}_insert_size.pdf"), sample=config["sample"]),
+        mosdepth_summary = expand(os.path.join(wrkdir, metrics_dir, "{sample}.mosdepth.summary.txt"), sample=config["sample"]),
+        umi_family_size = expand(os.path.join(wrkdir, metrics_dir, "{sample}.grouped-family-sizes.txt"), sample=config["sample"]),
+        base_recal_table = expand(os.path.join(wrkdir, metrics_dir, "{sample}_recal_data.table"), sample=config["sample"]),
+        fastqc_R1 = expand(os.path.join(wrkdir, metrics_dir,  "{run_id}", "{sample}_R1_{lane}_00-softlink_fastqc.html"),
+                           sample=config["sample"], lane=LANE, run_id=RUN_ID),
+        fastqc_R2 = expand(os.path.join(wrkdir, metrics_dir,  "{run_id}", "{sample}_R2_{lane}_00-softlink_fastqc.html"),
+                           sample=config["sample"], lane=LANE, run_id=RUN_ID),
+        covariates = expand(os.path.join(wrkdir, metrics_dir, "{sample}_covariates.pdf"), sample=config["sample"]),
+        coverage = (expand(os.path.join(wrkdir, metrics_dir, "{sample}_coverage.png"), sample=config["sample"])
+                              if config["SeqType"] not in ["Panel", "WES"]
+                              else []),
+        hs_metrics = (expand(os.path.join(wrkdir, metrics_dir, "{sample}.hs_metrics.txt"), sample=config["sample"])
+                              if config["SeqType"] in ["Panel", "WES"]
+                              else []),
+        corrected_UMI_metrics = (expand(os.path.join(wrkdir, metrics_dir, "correct_umi", "{run_id}", "{sample}_{lane}_umi_metrics.txt"),
+                                       # filtered_product,
+                                       run_id=RUN_ID,sample=config["sample"], lane=LANE)
+                                 if correct_umi
+                                     else []),
+        consensus_metrics = expand(os.path.join(wrkdir, metrics_dir, "{sample}_consensus_metrics.tsv"), sample=config["sample"])
+
+
+
+
+
+
+                              

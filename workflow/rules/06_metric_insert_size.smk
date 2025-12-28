@@ -1,7 +1,7 @@
 
 rule InsertSize:
     input:
-        bam=wrkdir / "alignments" / "{sample}_dedup.recall.sorted.bam",
+        bam=wrkdir / "alignments" / "{sample}_13-Sorted.bam",
     output:
         size_metric=wrkdir / "metrics" / "{sample}_insert_size_metrics.txt",
         pdf=wrkdir / "metrics" / "{sample}_insert_size.pdf",

@@ -56,7 +56,8 @@ if seq_type in ["Panel", "WES"]:
 
     rule HSmetrics:
         input:
-            bam=wrkdir / "alignments" / "{sample}_dedup.recall.sorted.bam",
+            bam=wrkdir / "alignments" / "{sample}_13-Sorted.bam",
+            bai=os.path.join(wrkdir, alignment_dir, "{sample}_13-Sorted.bam.bai"),
             bait_intervals=wrkdir / "metrics" / "{sample}_flank.interval_list",
             target_intervals=wrkdir / "metrics" / "{sample}_target.interval_list",
             genome=genome,
