@@ -79,10 +79,10 @@ else:
             read2 = temp(expand(os.path.join(wrkdir, fastq_dir, "{{run_id}}", split_dir, "{{sample}}_R2_{{lane}}_00-softlink.part_{split}.fastq.gz"), split=split_list)),
         conda: "../envs/seqkit.yaml"
         resources:
-            mem_mb = 4000,
+            mem_mb = 4000 * max(2, int(n_splits/2)),
             runtime = 60 * 24 * 5,
             nodes = 1,
-        threads: 1
+        threads: max(2, int(n_splits/2))
         shell:
-           "seqkit split2 -1 {input.read1} -2 {input.read2} --extension '.gz' -p {params.n_splits} -O {params.out_dir} " # --by-part-prefix '{sample}_R{read}_{lane}_00'
+           "seqkit split2 --threads {threads} -1 {input.read1} -2 {input.read2} --extension '.gz' -p {params.n_splits} -O {params.out_dir} " # --by-part-prefix '{sample}_R{read}_{lane}_00'
 

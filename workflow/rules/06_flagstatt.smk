@@ -6,7 +6,7 @@ rule flagstatt_end:
         os.path.join(wrkdir, metrics_dir, "{sample}_13-Sorted.flagstat"),
     conda:
         "../envs/sambamba.yaml"
-    threads: 1
+    threads: 2
     resources:
         mem_mb=8000,
         runtime=24 * 60,
@@ -17,7 +17,7 @@ rule flagstatt_end:
     message:
         "Running Flagstat"
     shell:
-        "(sambamba flagstat {input.bam} > {output}) &> {log}"
+        "(sambamba flagstat -t {threads} {input.bam} > {output}) &> {log}"
 
 
 rule flagstatt_primary_align:
@@ -28,7 +28,7 @@ rule flagstatt_primary_align:
        os.path.join(wrkdir, metrics_dir, "{sample}_06-merged.flagstat"),
     conda:
         "../envs/sambamba.yaml"
-    threads: 1
+    threads: 2
     resources:
         mem_mb=8000,
         runtime=24 * 60,
@@ -39,4 +39,4 @@ rule flagstatt_primary_align:
     message:
         "Running Flagstat"
     shell:
-        "(sambamba flagstat {input.bam} > {output}) &> {log}"
+        "(sambamba flagstat -t {threads} {input.bam} > {output}) &> {log}"

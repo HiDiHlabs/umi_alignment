@@ -3,12 +3,12 @@ rule coveragePlot:
         bam=wrkdir / "alignments" / "{sample}_13-Sorted.bam",
         bai=os.path.join(wrkdir, alignment_dir, "{sample}_13-Sorted.bam.bai"),
     params:
-        binsize=50,
+        binsize=250,
     output:
         plot=wrkdir / "metrics" / "{sample}_coverage.png",
-    threads: 20
+    threads: 5
     resources:
-        mem_mb=60000,
+        mem_mb=20000,
         runtime=24 * 60,
         nodes=1,
         tmpdir=scratch_dir,

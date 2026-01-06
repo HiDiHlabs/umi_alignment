@@ -362,8 +362,7 @@ else:
 
 LANE = metadata["LANE_NO"].unique().tolist()
 RUN_ID = metadata["RUN_ID"].unique().tolist()
-print(LANE)
-print(RUN_ID)
+
 
 def filter_combinator(combinator, allow_list):
     def filtered_combinator(*args, **kwargs):

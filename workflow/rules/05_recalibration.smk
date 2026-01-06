@@ -10,7 +10,7 @@ rule baseRecalibrator:
         "../envs/gatk.yaml"
     threads: 8
     resources:
-        mem_mb=50000,
+        mem="8GB",
         runtime=72 * 60,
         nodes=1,
         tmpdir=scratch_dir,
@@ -19,9 +19,9 @@ rule baseRecalibrator:
     message:
         "Recalibrating with GATK BaseRecalibrator"
     shell:
-        "gatk BaseRecalibrator -I {input.bam} -R {input.genome} "
-        " --known-sites {input.dbsnp} "
-        " -O {output.table} &> {log} "
+        'gatk --java-options "-Djava.io.tmpdir={resources.tmpdir} -Dsamjdk.use_async_io_write_samtools=true -Dsamjdk.use_async_io_read_samtools=true -Xms4G -Xmx{resources.mem} -XX:ParallelGCThreads=2" BaseRecalibrator -I {input.bam} -R {input.genome} '
+        ' --known-sites {input.dbsnp} '
+        ' -O {output.table} &> {log} '
 
 
 rule applyBSQR:
@@ -35,9 +35,9 @@ rule applyBSQR:
         bai=temp(os.path.join(wrkdir, alignment_dir, "{sample}_12-BaseRecalibrate.bai")),
     conda:
         "../envs/gatk.yaml"
-    threads: 8
+    threads: 4
     resources:
-        mem_mb=50000,
+        mem="16GB",
         runtime=72 * 60,
         nodes=1,
         tmpdir=scratch_dir,
@@ -46,7 +46,8 @@ rule applyBSQR:
     message:
         "Recalibrating with GATK BaseRecalibrator"
     shell:
-        "gatk ApplyBQSR --create-output-bam-index -I {input.bam} -R {genome} --bqsr-recal-file {input.table} -O {output.bam} &> {log} "
+        'gatk --java-options "-Djava.io.tmpdir={resources.tmpdir} -Xms4G -Xmx{resources.mem}"'
+        'ApplyBQSR --create-output-bam-index --emit-original-quals -I {input.bam} -R {genome} --bqsr-recal-file {input.table} -O {output.bam} &> {log} '
 
 
 rule AnalyzeCovariates:
@@ -109,7 +110,7 @@ rule sort_index:
     params:
         mem_thread=8000,
     resources:
-        mem_mb=8 * 8000,
+        mem_mb=8000,
         runtime=24 * 60,
         nodes=1,
         tmpdir=scratch_dir,

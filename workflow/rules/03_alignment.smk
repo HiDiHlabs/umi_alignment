@@ -8,8 +8,8 @@ rule fastqbam:
         genome=genome,
         fastq_r1=(os.path.join(wrkdir, fastq_dir , "{run_id}", cutadapt_dir, "{sample}_R1_{lane}_01-trim_{split}.fastq.gz") if config["trim_adapters"] 
                   else os.path.join(wrkdir, fastq_dir, "{run_id}", split_dir, "{sample}_R1_{lane}_00-softlink.part_{split}.fastq.gz")),
-        fastq_r2=(os.path.join(wrkdir, fastq_dir , "{run_id}", cutadapt_dir, "{sample}_R1_{lane}_01-trim_{split}.fastq.gz") 
-                  if config["trim_adapters"] else os.path.join(wrkdir, fastq_dir, "{run_id}", split_dir, "{sample}_R1_{lane}_00-softlink.part_{split}.fastq.gz")),
+        fastq_r2=(os.path.join(wrkdir, fastq_dir , "{run_id}", cutadapt_dir, "{sample}_R2_{lane}_01-trim_{split}.fastq.gz") 
+                  if config["trim_adapters"] else os.path.join(wrkdir, fastq_dir, "{run_id}", split_dir, "{sample}_R2_{lane}_00-softlink.part_{split}.fastq.gz")),
     output:
         temp(os.path.join(wrkdir, fastq_dir, "{run_id}", split_dir, "{sample}_{lane}_{split}_02-unmapped.bam") if not read_structure else os.path.join(wrkdir, fastq_dir, "{run_id}", split_dir, "{sample}_{lane}_{split}_03-unmapped_UMI-annot.bam")),
     params:
@@ -165,17 +165,72 @@ rule bwa_map:
 
 
 
+
+rule sortQueryName:
+    """
+    Downstream Tasks require sorting by QueryName
+    """
+    input:
+        bam=os.path.join(wrkdir, alignment_dir, "{run_id}", "{sample}_{lane}_{split}_04-primary-aligned.bam"),
+    output:
+        bam=temp(os.path.join(wrkdir, alignment_dir, "{run_id}", "{sample}_{lane}_{split}_05-QueryNameSorted.bam")),
+    threads: 1
+    resources:
+        mem_mb=8000,
+        runtime=72 * 60,
+        nodes=1,
+        tmpdir=scratch_dir,
+    conda:
+        "../envs/fgbio.yaml"
+    log:
+        os.path.join(logdir, "fgbio/querynameSort_{run_id}_{sample}_{lane}_{split}.log"),
+    message:
+        "Sort By QueryName"
+    shell:
+        "(fgbio -Djava.io.tmpdir={resources.tmpdir} -Xmx{resources.mem_mb}m "
+        "SortBam --input={input.bam} --sort-order=Queryname --output {output.bam}) >& log "
+
+
+rule fix_mate:
+    """
+    Fixing mate information if required
+    For some reason for some reads the mate information is not properly set.
+    This can cause problems in downstream analysis.
+    """
+    input:
+        bam=os.path.join(wrkdir, alignment_dir, "{run_id}", "{sample}_{lane}_{split}_05-QueryNameSorted.bam"),
+    output:
+        bam=temp(os.path.join(wrkdir, alignment_dir, "{run_id}", "{sample}_{lane}_{split}_05-mate-fix.bam")),
+    threads: 1
+    resources:
+        mem_mb=8000,
+        runtime=72 * 60,
+        nodes=1,
+        tmpdir=scratch_dir,
+    conda:
+        "../envs/fgbio.yaml"
+    log:
+        os.path.join(logdir, "fgbio/fixmate_{run_id}_{sample}_{lane}_{split}.log"),
+    message:
+        "Fixing mate information if required"
+    shell:
+        "(fgbio -Djava.io.tmpdir={resources.tmpdir} -Xmx{resources.mem_mb}m --compression 1 --async-io SetMateInformation "
+        "--input {input.bam} "
+        "--output {output.bam} "
+        "--allow-missing-mates true )"
+        " &> {log} "
+
 rule merge:
     """
     Merging bam files from different lanes/runs
     """
     input:
-        expand(os.path.join(wrkdir, alignment_dir, "{run_id}", "{sample}_{lane}_{split}_04-primary-aligned.bam"), zip, **allow_dict_of_lists) #filtered_product, run_id=RUN_ID, sample=config["sample"], lane=LANE, split=split_list)
+        expand(os.path.join(wrkdir, alignment_dir, "{run_id}", "{sample}_{lane}_{split}_05-mate-fix.bam"), zip, **allow_dict_of_lists) #filtered_product, run_id=RUN_ID, sample=config["sample"], lane=LANE, split=split_list)
     output:
         bam=temp(os.path.join(wrkdir, alignment_dir, "{sample}_06-merged.bam")),
-    threads: 20
+    threads: 6
     resources:
-        mem_mb=80000,
+        mem_mb=16000,
         runtime=72 * 60,
         nodes=1,
         tmpdir=scratch_dir,
@@ -234,22 +289,22 @@ rule realign:
 
 rule extract_supp_reads:
     input:
-        bam = os.path.join(wrkdir, alignment_dir, "{sample}_07-mate-fix.bam"),
+        bam = os.path.join(wrkdir, alignment_dir, "{sample}_06-merged.bam"),
     output:
         bam = temp(os.path.join(wrkdir, alignment_dir, "{sample}_10-Supplemenary-Reads.bam")),
-    threads: 8
+    threads: 2
     params:
-        samtools_threads=6,
+        samtools_threads=1,
     resources:
-        mem_mb=64000,
-        mem_samtools=8000,
+        mem_mb=8000,
+        mem_samtools=4000,
         nodes=1,
         runtime=1*24*60,
     conda:
         "../envs/samtools.yaml"
     shell:
         "samtools view -f 0x800 -b {input.bam} | samtools sort --threads {params.samtools_threads} -m{resources.mem_samtools}m -o {output.bam}"
-        
+
 
 
 rule add_back_supp_reads:
