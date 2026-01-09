@@ -10,7 +10,7 @@ rule baseRecalibrator:
         "../envs/gatk.yaml"
     threads: 8
     resources:
-        mem="8GB",
+        mem_mb=8000,
         runtime=72 * 60,
         nodes=1,
         tmpdir=scratch_dir,
@@ -19,7 +19,7 @@ rule baseRecalibrator:
     message:
         "Recalibrating with GATK BaseRecalibrator"
     shell:
-        'gatk --java-options "-Djava.io.tmpdir={resources.tmpdir} -Dsamjdk.use_async_io_write_samtools=true -Dsamjdk.use_async_io_read_samtools=true -Xms4G -Xmx{resources.mem} -XX:ParallelGCThreads=2" BaseRecalibrator -I {input.bam} -R {input.genome} '
+        'gatk --java-options "-Djava.io.tmpdir={resources.tmpdir} -Dsamjdk.use_async_io_write_samtools=true -Dsamjdk.use_async_io_read_samtools=true -Xms4G -Xmx{resources.mem_mb}m -XX:ParallelGCThreads=2" BaseRecalibrator -I {input.bam} -R {input.genome} '
         ' --known-sites {input.dbsnp} '
         ' -O {output.table} &> {log} '
 
@@ -37,7 +37,7 @@ rule applyBSQR:
         "../envs/gatk.yaml"
     threads: 4
     resources:
-        mem="16GB",
+        mem_mb=16000,
         runtime=72 * 60,
         nodes=1,
         tmpdir=scratch_dir,
@@ -46,7 +46,7 @@ rule applyBSQR:
     message:
         "Recalibrating with GATK BaseRecalibrator"
     shell:
-        'gatk --java-options "-Djava.io.tmpdir={resources.tmpdir} -Xms4G -Xmx{resources.mem}"'
+        'gatk --java-options "-Djava.io.tmpdir={resources.tmpdir} -Xms4G -Xmx{resources.mem_mb}m" '
         'ApplyBQSR --create-output-bam-index --emit-original-quals -I {input.bam} -R {genome} --bqsr-recal-file {input.table} -O {output.bam} &> {log} '
 
 

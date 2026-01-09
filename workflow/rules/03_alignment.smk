@@ -111,17 +111,17 @@ rule bwa_map:
         bam=(os.path.join(wrkdir, fastq_dir, "{run_id}", split_dir, "{sample}_{lane}_{split}_03-unmapped_UMI-corrected.bam") if correct_umi else os.path.join(wrkdir, fastq_dir, "{run_id}", split_dir, "{sample}_{lane}_{split}_03-unmapped_UMI-annot.bam")),
     output:
         bam = temp(os.path.join(wrkdir, alignment_dir, "{run_id}", "{sample}_{lane}_{split}_04-primary-aligned.bam")),
-        bai = temp(os.path.join(wrkdir, alignment_dir, "{run_id}", "{sample}_{lane}_{split}_04-primary-aligned.bam.bai")),
-    threads: 28
+        # bai = temp(os.path.join(wrkdir, alignment_dir, "{run_id}", "{sample}_{lane}_{split}_04-primary-aligned.bam.bai")),
+    threads: 25
     resources:
-        mem_mb=80000,  # 8GB for BWA, 4GB for fgbio, 64GB for samtools sort and an overhead memory of 2GB
+        mem_mb=12000,  # 8GB for BWA, 4GB for fgbio, 64GB for samtools sort and an overhead memory of 2GB
         runtime=72 * 60,
         nodes=1,
         mem_fgbio=4000,
-        mem_samtools=8000,
+        # mem_samtools=8000,
         tmpdir=scratch_dir,
     params:
-        samtools_threads=8,
+        # samtools_threads=8,
         bwa_threads=24,
     conda:
         "../envs/fgbio.yaml"
@@ -136,39 +136,16 @@ rule bwa_map:
         "| fgbio -Djava.io.tmpdir={resources.tmpdir} -Xmx{resources.mem_fgbio}m --compression 1 --async-io ZipperBams "
         "--unmapped {input.bam} "
         "--ref {input.genome} "
-        "| samtools sort --threads {params.samtools_threads} -m{resources.mem_samtools}m -T {resources.tmpdir} -o {output.bam}; samtools index  --output {output.bai} --bai {output.bam} "
-        ") &> {log} "
-
-
-
-# rule sort_name_index:
-#     input:
-#         bam=os.path.join(wrkdir, alignment_dir, "{run_id}", "{sample}_{lane}_{split}_04-primary-aligned.bam"),
-#     output:
-#         bam=temp(os.path.join(wrkdir, alignment_dir, "{run_id}", "{sample}_{lane}_{split}_05-sorted.bam")),
-#     conda:
-#         "../envs/samtools.yaml"
-#     threads: 8
-#     params:
-#         mem_thread=4000,
-#     resources:
-#         mem_mb=8 * 4000,
-#         runtime=24 * 60,
-#         nodes=1,
-#         tmpdir=scratch_dir,
-#     log:
-#         logdir, "samtools/sort_name_{run_id}_{sample}_{lane}_{split}.log",
-#     message:
-#         "Sorting and indexing  concensus bam file"
-#     shell:
-#         " (samtools sort --threads 8 -m{params.mem_thread}m -n -u -T {resources.tmpdir} -o {output.bam} {input.bam} ) &> {log} "
-
+        "--output {output.bam} "
+        # "| samtools sort --threads {params.samtools_threads} -m{resources.mem_samtools}m -T {resources.tmpdir} -o {output.bam}
+        # "; samtools index --threads {threads} --bai --output {output.bai}  {output.bam} "
+        ") &> {log}"
 
 
 
 rule sortQueryName:
     """
-    Downstream Tasks require sorting by QueryName
+    Downstream Tasks require sorting by QueryName 
     """
     input:
         bam=os.path.join(wrkdir, alignment_dir, "{run_id}", "{sample}_{lane}_{split}_04-primary-aligned.bam"),

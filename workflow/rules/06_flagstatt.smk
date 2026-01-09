@@ -23,7 +23,6 @@ rule flagstatt_end:
 rule flagstatt_primary_align:
     input:
         bam=os.path.join(wrkdir, alignment_dir, "{sample}_06-merged.bam"),
-        bai=os.path.join(wrkdir, alignment_dir, "{sample}_13-Sorted.bam.bai"),
     output:
        os.path.join(wrkdir, metrics_dir, "{sample}_06-merged.flagstat"),
     conda:
