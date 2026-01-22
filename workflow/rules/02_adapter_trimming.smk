@@ -41,6 +41,7 @@ rule cutadapt:
     output:
         fastq_r1=temp(os.path.join(wrkdir, fastq_dir , "{run_id}", cutadapt_dir, "{sample}_R1_{lane}_01-trim_{split}.fastq.gz")),
         fastq_r2=temp((os.path.join(wrkdir, fastq_dir, "{run_id}", cutadapt_dir, "{sample}_R2_{lane}_01-trim_{split}.fastq.gz"))),
+        json_log = os.path.join(wrkdir, metrics_dir, "{run_id}_{sample}_{lane}_{split}_cutadapt_log.json"),
     params:
         cutadapt_params = cutadapt_params
     log:
@@ -56,7 +57,7 @@ rule cutadapt:
     message:
         "Trimming adapters using cutadapt"
     shell:
-        "cutadapt -j {threads} {params.cutadapt_params} -a file:{input.adapt_1} -A file:{input.adapt_2} -o {output.fastq_r1} -p {output.fastq_r2} {input.fastq_r1} {input.fastq_r2} &> {log}"
+        "cutadapt -j {threads} {params.cutadapt_params} --json={output.json_log} -a file:{input.adapt_1} -A file:{input.adapt_2} -o {output.fastq_r1} -p {output.fastq_r2} {input.fastq_r1} {input.fastq_r2} &> {log}"
 
 rule subset_I1:
     input:
