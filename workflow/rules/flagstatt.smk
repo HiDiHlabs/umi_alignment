@@ -3,6 +3,8 @@ rule flagstatt:
         bam=wrkdir / "alignments" / "{sample}_{ext}.bam",
     output:
         wrkdir / "metrics" / "{sample}_{ext}.flagstat",
+    log:
+        logdir / "sambamba/{sample}_{ext}.log",
     conda:
         "../envs/sambamba.yaml"
     threads: 1
@@ -11,8 +13,6 @@ rule flagstatt:
         runtime=24 * 60,
         nodes=1,
         tmpdir=scratch_dir,
-    log:
-        logdir / "sambamba/{sample}_{ext}.log",
     message:
         "Running Flagstat"
     shell:

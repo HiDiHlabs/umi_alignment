@@ -8,6 +8,8 @@ rule baseRecalibrator:
         bam=temp(wrkdir / "alignments" / "{sample}_dedup.recall.bam"),
         bai=temp(wrkdir / "alignments" / "{sample}_dedup.recall.bai"),
         analyse_covariates=wrkdir / "metrics" / "{sample}_covariates.pdf",
+    log:
+        logdir / "gatk/{sample}_recal.log",
     conda:
         "../envs/gatk.yaml"
     threads: 8
@@ -16,8 +18,6 @@ rule baseRecalibrator:
         runtime=72 * 60,
         nodes=1,
         tmpdir=scratch_dir,
-    log:
-        logdir / "gatk/{sample}_recal.log",
     message:
         "Recalibrating with GATK BaseRecalibrator"
     shell:
@@ -38,18 +38,18 @@ rule sort_index:
     output:
         bam=wrkdir / "alignments" / "{sample}_dedup.recall.sorted.bam",
         bai=wrkdir / "alignments" / "{sample}_dedup.recall.sorted.bam.bai",
+    log:
+        logdir / "samtools/{sample}_sort.log",
     conda:
         "../envs/samtools.yaml"
     threads: 8
-    params:
-        mem_thread=8000,
     resources:
         mem_mb=8 * 8000,
         runtime=24 * 60,
         nodes=1,
         tmpdir=scratch_dir,
-    log:
-        logdir / "samtools/{sample}_sort.log",
+    params:
+        mem_thread=8000,
     message:
         "Sorting and indexing recalibrated bam file"
     shell:

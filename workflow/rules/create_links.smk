@@ -1,12 +1,4 @@
 rule create_links_files:
-    params:
-        metadata=config["metadata"],
-        fastq_dir=wrkdir / "fastq",
-        read_structure=read_structure,
-    resources:
-        mem_mb=1000,
-        runtime=20,
-        nodes=1,
     output:
         fastq_r1=expand(
             wrkdir / "fastq" / "{run_id}" / "{sample}_R1_{lane}.fastq.gz",
@@ -33,6 +25,14 @@ rule create_links_files:
             if not read_structure
             else []
         ),
+    resources:
+        mem_mb=1000,
+        runtime=20,
+        nodes=1,
+    params:
+        metadata=config["metadata"],
+        fastq_dir=wrkdir / "fastq",
+        read_structure=read_structure,
     message:
         "Creating links to fastq files"
     run:
@@ -43,13 +43,14 @@ rule create_links_files:
         ]
         if params.read_structure:
             if metadata["READ"].nunique() != 2:
-                raise ValueError("Read structure is provided but R1 R2 and R3 provided")
+                raise ValueError(
+                    "Read structure is provided but R1 R2 and R3 provided"
+                )
         else:
             if metadata["READ"].nunique() != 3:
                 raise ValueError(
                     "Read structure is not provided but R1 R2 and R3 not provided"
                 )
-
         for index, row in metadata.iterrows():
             fastq_file = Path(row["FASTQ_FILE"])
             suffix = "fastq"
