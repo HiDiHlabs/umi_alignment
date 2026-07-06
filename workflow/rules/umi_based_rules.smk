@@ -15,16 +15,16 @@ rule fix_mate:
         ),
     output:
         bam=temp(wrkdir / "alignments" / "{sample}_mate_fix.bam"),
+    log:
+        logdir / "fgbio/fixmate_{sample}.log",
+    conda:
+        "../envs/fgbio.yaml"
     threads: 1
     resources:
         mem_mb=50000,
         runtime=72 * 60,
         nodes=1,
         tmpdir=scratch_dir,
-    conda:
-        "../envs/fgbio.yaml"
-    log:
-        logdir / "fgbio/fixmate_{sample}.log",
     message:
         "Fixing mate information if required"
     shell:
@@ -43,20 +43,20 @@ rule group_reads:
             wrkdir / "alignments" / "{sample}_merged_aln_umi_annot_sorted_grouped.bam"
         ),
         stats=wrkdir / "metrics" / "{sample}.grouped-family-sizes.txt",
-    params:
-        strategy=group_strategy,
-        allowed_edits=group_allowed_edits,
-        min_mapq=group_min_mapq,
+    log:
+        logdir / "fgbio/group_{sample}.log",
+    conda:
+        "../envs/fgbio.yaml"
     threads: 2
     resources:
         mem_mb=50000,
         runtime=72 * 60,
         nodes=1,
         tmpdir=scratch_dir,
-    conda:
-        "../envs/fgbio.yaml"
-    log:
-        logdir / "fgbio/group_{sample}.log",
+    params:
+        strategy=group_strategy,
+        allowed_edits=group_allowed_edits,
+        min_mapq=group_min_mapq,
     message:
         "Grouping reads by UMI and position for consensus calling."
     shell:
@@ -77,6 +77,16 @@ rule call_filter_consensus_reads:
     output:
         bam=temp(wrkdir / "alignments" / "{sample}.cons.filtered.bam"),
         metrics=logdir / "fgbio/call_consensus_reads.{sample}.log",
+    log:
+        logdir / "fgbio/call_consensus_reads.{sample}.log",
+    conda:
+        "../envs/fgbio.yaml"
+    threads: 24
+    resources:
+        mem_mb=50000,
+        runtime=72 * 60,
+        nodes=1,
+        tmpdir=scratch_dir,
     params:
         min_reads=consensus_min_reads,
         min_input_base_mapq=consensus_min_input_base_mapq,
@@ -89,16 +99,6 @@ rule call_filter_consensus_reads:
         max_no_call_fraction=filter_max_no_call_fraction,
         memory_consensus=25000,
         memory_filter=25000,
-    threads: 24
-    resources:
-        mem_mb=50000,
-        runtime=72 * 60,
-        nodes=1,
-        tmpdir=scratch_dir,
-    conda:
-        "../envs/fgbio.yaml"
-    log:
-        logdir / "fgbio/call_consensus_reads.{sample}.log",
     message:
         "Calling consensus reads from grouped reads."
     shell:
@@ -126,18 +126,18 @@ rule sort_name_index:
         bam=wrkdir / "alignments" / "{sample}.cons.unmapped.bam",
     output:
         bam=temp(wrkdir / "alignments" / "{sample}.cons.unmapped.sorted.bam"),
+    log:
+        logdir / "samtools/{sample}_sort_name.log",
     conda:
         "../envs/samtools.yaml"
     threads: 8
-    params:
-        mem_thread=8000,
     resources:
         mem_mb=8 * 8000,
         runtime=24 * 60,
         nodes=1,
         tmpdir=scratch_dir,
-    log:
-        logdir / "samtools/{sample}_sort_name.log",
+    params:
+        mem_thread=8000,
     message:
         "Sorting and indexing  concensus bam file"
     shell:
@@ -152,22 +152,22 @@ rule filter_consensus_reads:
         ref=genome,
     output:
         bam=temp(wrkdir / "alignments" / "{sample}.cons.filtered#.bam"),
-    params:
-        min_reads=filter_min_reads,
-        min_base_qual=filter_min_base_qual,
-        max_base_error_rate=filter_max_base_error_rate,
-        max_read_error_rate=filter_max_read_error_rate,
-        max_no_call_fraction=filter_max_no_call_fraction,
+    log:
+        logdir / "fgbio" / "filter_consensus_reads.{sample}.log",
+    conda:
+        "../envs/fgbio.yaml"
     threads: 8
     resources:
         mem_mb=50000,
         runtime=72 * 60,
         nodes=1,
         tmpdir=scratch_dir,
-    conda:
-        "../envs/fgbio.yaml"
-    log:
-        logdir / "fgbio" / "filter_consensus_reads.{sample}.log",
+    params:
+        min_reads=filter_min_reads,
+        min_base_qual=filter_min_base_qual,
+        max_base_error_rate=filter_max_base_error_rate,
+        max_read_error_rate=filter_max_read_error_rate,
+        max_no_call_fraction=filter_max_no_call_fraction,
     message:
         "Filtering consensus reads and sorting into coordinate order."
     shell:
@@ -181,7 +181,6 @@ rule filter_consensus_reads:
         "--max-base-error-rate {params.max_base_error_rate} "
         "--min-base-quality {params.min_base_qual} "
         "--max-no-call-fraction {params.max_no_call_fraction} "
-
         ") &> {log} "
 
 
@@ -190,17 +189,17 @@ rule gatherConsensusMetrics:
         logdir / "fgbio/call_consensus_reads.{sample}.log",
     output:
         wrkdir / "metrics" / "{sample}_consensus_metrics.tsv",
-    params:
-        sample=str(config["sample"]),
+    log:
+        logdir / "metrics" / "{sample}_consensus_metrics.log",
+    conda:
+        "../envs/consensus.yaml"
     threads: 1
     resources:
         mem_mb=1000,
         runtime=60,
         nodes=1,
         tmpdir=scratch_dir,
-    log:
-        logdir / "metrics" / "{sample}_consensus_metrics.log",
-    conda:
-        "../envs/consensus.yaml"
+    params:
+        sample=str(config["sample"]),
     script:
         "../scripts/getConsensusMetrics.py"

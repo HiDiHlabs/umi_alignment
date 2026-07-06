@@ -1,12 +1,10 @@
-print(
-    """
+print("""
     \tAlignment pipeline for UMI based sequencing reads
     \tAuthor: Shashwat Sahay
     \tEmail: shashwat.sahay@charite.de
     \tVersion: 0.2.0
 
-    """
-)
+    """)
 
 
 def get_data_time():

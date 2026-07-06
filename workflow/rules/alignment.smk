@@ -44,20 +44,20 @@ rule fastqbam:
         ),
     output:
         temp(wrkdir / "fastq" / "{run_id}" / "{sample}_{lane}_unmapped.bam"),
-    params:
-        library=library_prep_kit,
-        read_structure="--read-structures " + read_structure if read_structure else "",
-        read_group=lambda wc: (wc.run_id + "_" + wc.lane + "_" + wc.sample),
+    log:
+        logdir / "fgbio" / "fastqtobam_{run_id}_{sample}_R1_{lane}.log",
+    conda:
+        "../envs/fgbio.yaml"
     threads: 1
     resources:
         mem_mb=8000,
         runtime=72 * 60,
         nodes=1,
         tmpdir=scratch_dir,
-    conda:
-        "../envs/fgbio.yaml"
-    log:
-        logdir / "fgbio" / "fastqtobam_{run_id}_{sample}_R1_{lane}.log",
+    params:
+        library=library_prep_kit,
+        read_structure="--read-structures " + read_structure if read_structure else "",
+        read_group=lambda wc: (wc.run_id + "_" + wc.lane + "_" + wc.sample),
     message:
         "Converting fastq to bam to assign read group and library information."
     shell:
@@ -89,19 +89,19 @@ if correct_umi:
             / "correct_umi"
             / "{run_id}"
             / "{sample}_{lane}_umi_metrics.txt",
-        params:
-            max_mismatches=correct_umi_max_mismatches,
-            min_distance=correct_umi_min_distance,
+        log:
+            logdir / "fgbio" / "correct_umi_{run_id}_{sample}_{lane}.log",
+        conda:
+            "../envs/fgbio.yaml"
         threads: 1
         resources:
             mem_mb=2000,
             runtime=72 * 60,
             nodes=1,
             tmpdir=scratch_dir,
-        conda:
-            "../envs/fgbio.yaml"
-        log:
-            logdir / "fgbio" / "correct_umi_{run_id}_{sample}_{lane}.log",
+        params:
+            max_mismatches=correct_umi_max_mismatches,
+            min_distance=correct_umi_min_distance,
         message:
             "Correcting UMIs."
         shell:
@@ -130,16 +130,16 @@ if not read_structure:
                 / "{run_id}"
                 / "{sample}_aln_{lane}_umi_annot.bam"
             ),
+        log:
+            logdir / "fgbio" / "annotate_umi_{run_id}_{sample}_{lane}.log",
+        conda:
+            "../envs/fgbio.yaml"
         threads: 1
         resources:
             mem_mb=8000,
             runtime=72 * 60,
             nodes=1,
             tmpdir=scratch_dir,
-        conda:
-            "../envs/fgbio.yaml"
-        log:
-            logdir / "fgbio" / "annotate_umi_{run_id}_{sample}_{lane}.log",
         message:
             "Annotating BAM with UMIs from fastq file."
         shell:
@@ -163,18 +163,18 @@ rule bwa_map:
         ),
     output:
         temp(wrkdir / "alignments" / "{run_id}" / "{sample}_aln_{lane}.bam"),
+    log:
+        logdir / "bwa" / "first_pass_align_{run_id}_{sample}_{lane}.log",
+    conda:
+        "../envs/fgbio.yaml"
     threads: 24
     resources:
         mem_mb=24000,
         runtime=72 * 60,
         nodes=1,
         tmpdir=scratch_dir,
-    conda:
-        "../envs/fgbio.yaml"
     message:
         "First pass alignemnt. Aligning reads to the genome using BWA."
-    log:
-        logdir / "bwa" / "first_pass_align_{run_id}_{sample}_{lane}.log",
     shell:
         "("
         "samtools fastq {input.bam} "
@@ -208,18 +208,18 @@ rule merge:
         ),
     output:
         bam=temp(wrkdir / "alignments" / "{sample}_merged_umi_annot.bam"),
+    log:
+        logdir / "samtools/{sample}_merge.log",
+    conda:
+        "../envs/samtools.yaml"
     threads: 24
     resources:
         mem_mb=8000,
         runtime=72 * 60,
         nodes=1,
         tmpdir=scratch_dir,
-    conda:
-        "../envs/samtools.yaml"
     message:
         "Merging bam files from different lanes/runs."
-    log:
-        logdir / "samtools/{sample}_merge.log",
     shell:
         "(samtools merge --threads {threads} -f {output.bam} {input}) &> {log} "
 
@@ -234,6 +234,10 @@ rule realign:
     output:
         bam=temp(wrkdir / "alignments" / "{sample}.cons.filtered.realigned.bam"),
         bai=temp(wrkdir / "alignments" / "{sample}.cons.filtered.realigned.bam.bai"),
+    log:
+        logdir / "bwa/{sample}_realign.log",
+    conda:
+        "../envs/fgbio.yaml"
     threads: 28
     resources:
         mem_mb=80000,  # 8GB for BWA, 4GB for fgbio, 64GB for samtools sort and an overhead memory of 2GB
@@ -245,10 +249,6 @@ rule realign:
     params:
         samtools_threads=8,
         bwa_threads=24,
-    conda:
-        "../envs/fgbio.yaml"
-    log:
-        logdir / "bwa/{sample}_realign.log",
     message:
         "Second pass alignment using BWA on the consesnsus sequences called."
     shell:

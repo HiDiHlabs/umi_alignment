@@ -3,9 +3,6 @@
 
 
 rule create_adapter_fastq:
-    params:
-        adapt_1=adapter_seq_r1,
-        adapt_3=adapter_seq_r3,
     output:
         adapt_1=temp(wrkdir / "{sample}" / "cutadapt" / "adapt_1.fastq"),
         adapt_3=temp(wrkdir / "{sample}" / "cutadapt" / "adapt_3.fastq"),
@@ -15,6 +12,9 @@ rule create_adapter_fastq:
         runtime=20,
         nodes=1,
         tmpdir=scratch_dir,
+    params:
+        adapt_1=adapter_seq_r1,
+        adapt_3=adapter_seq_r3,
     message:
         "Creating adapter fastq files"
     run:
@@ -24,7 +24,6 @@ rule create_adapter_fastq:
                 handle.write(">adapter_" + str(count) + "\n")
                 handle.write(i + "\n")
                 count += 1
-
         with open(output.adapt_3, "w") as handle:
             count = 1
             for i in params.adapt_3:
@@ -66,14 +65,14 @@ rule cutadapt:
         ),
     log:
         logdir / "cutadapt/{run_id}_{sample}_R1_{lane}.log",
+    conda:
+        "../envs/cutadapt.yaml"
     threads: 8
     resources:
         mem_mb=8000,
         runtime=72 * 60,
         nodes=1,
         tmpdir=scratch_dir,
-    conda:
-        "../envs/cutadapt.yaml"
     message:
         "Trimming adapters using cutadapt"
     shell:

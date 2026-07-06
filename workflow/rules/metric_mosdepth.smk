@@ -6,21 +6,21 @@ if seq_type in ["Panel", "WES"]:
         input:
             bam=wrkdir / "alignments" / "{sample}_dedup.recall.sorted.bam",
             target_regions=target_regions,
-        params:
-            prefix=str(wrkdir / "metrics" / "{sample}"),
         output:
             out_1=wrkdir / "metrics" / "{sample}.mosdepth.global.dist.txt",
             out_2=wrkdir / "metrics" / "{sample}.mosdepth.summary.txt",
+        log:
+            logdir / "mosdepth/{sample}.log",
+        conda:
+            "../envs/mosdepth.yaml"
         threads: 1
         resources:
             mem_mb=8000,
             runtime=24 * 60,
             nodes=1,
             tmpdir=scratch_dir,
-        conda:
-            "../envs/mosdepth.yaml"
-        log:
-            logdir / "mosdepth/{sample}.log",
+        params:
+            prefix=str(wrkdir / "metrics" / "{sample}"),
         message:
             "Running mosdepth for WES/panel data"
         shell:
@@ -31,22 +31,22 @@ else:
     rule mosdepth:
         input:
             bam=wrkdir / "alignments" / "{sample}_dedup.recall.sorted.bam",
-        params:
-            prefix=str(wrkdir / "metrics" / "{sample}"),
         output:
             out_1=wrkdir / "metrics" / "{sample}.mosdepth.global.dist.txt",
             out_2=wrkdir / "metrics" / "{sample}.mosdepth.summary.txt",
+        log:
+            logdir / "mosdepth/{sample}.log",
+        conda:
+            "../envs/mosdepth.yaml"
         threads: 1
         resources:
             mem_mb=8000,
             runtime=24 * 60,
             nodes=1,
             tmpdir=scratch_dir,
-        conda:
-            "../envs/mosdepth.yaml"
+        params:
+            prefix=str(wrkdir / "metrics" / "{sample}"),
         message:
             "Running mosdepth for WGS data"
-        log:
-            logdir / "mosdepth/{sample}.log",
         shell:
             "mosdepth -n {params.prefix} {input.bam} &> {log}"

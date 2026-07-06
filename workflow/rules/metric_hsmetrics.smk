@@ -8,6 +8,8 @@ if seq_type in ["Panel", "WES"]:
             chrom_size=chrom_sizes,
         output:
             flank_bed=temp(wrkdir / "metrics" / "{sample}_flank.bed"),
+        log:
+            logdir / "bedtools" / "{sample}_slop.log",
         conda:
             "../envs/bedtools.yaml"
         threads: 1
@@ -15,8 +17,6 @@ if seq_type in ["Panel", "WES"]:
             mem_mb=1000,
             runtime=4 * 60,
             nodes=1,
-        log:
-            logdir / "bedtools" / "{sample}_slop.log",
         message:
             "Bait regions not provided creating flanks"
         shell:
@@ -36,6 +36,8 @@ if seq_type in ["Panel", "WES"]:
         output:
             bait_intervals=temp(wrkdir / "metrics" / "{sample}_flank.interval_list"),
             target_intervals=temp(wrkdir / "metrics" / "{sample}_target.interval_list"),
+        log:
+            logdir / "bedtools" / "{sample}_slop.log",
         conda:
             "../envs/gatk.yaml"
         threads: 1
@@ -44,8 +46,6 @@ if seq_type in ["Panel", "WES"]:
             runtime=4 * 60,
             nodes=1,
             tmpdir=scratch_dir,
-        log:
-            logdir / "bedtools" / "{sample}_slop.log",
         message:
             "Creating flank and target intervals for Panel and WES data"
         shell:
@@ -62,8 +62,8 @@ if seq_type in ["Panel", "WES"]:
             genome=genome,
         output:
             target=wrkdir / "metrics" / "{sample}.hs_metrics.txt",
-        params:
-            max_coverage=max_coverage,
+        log:
+            logdir / "picard/{sample}.hs_metrics.log",
         conda:
             "../envs/gatk.yaml"
         threads: 1
@@ -72,9 +72,9 @@ if seq_type in ["Panel", "WES"]:
             runtime=24 * 60,
             nodes=1,
             tmpdir=scratch_dir,
+        params:
+            max_coverage=max_coverage,
         message:
             "Calculating HS metrics for Panel and WES data"
-        log:
-            logdir / "picard/{sample}.hs_metrics.log",
         shell:
             "gatk CollectHsMetrics -I {input.bam} -O {output.target} -R {input.genome} -TI {input.target_intervals} -BI {input.bait_intervals} --COVERAGE_CAP {params.max_coverage} &> {log}"

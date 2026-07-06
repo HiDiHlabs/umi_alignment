@@ -5,6 +5,8 @@ rule InsertSize:
     output:
         size_metric=wrkdir / "metrics" / "{sample}_insert_size_metrics.txt",
         pdf=wrkdir / "metrics" / "{sample}_insert_size.pdf",
+    log:
+        logdir / "picard/{sample}_insert_size.log",
     conda:
         "../envs/gatk.yaml"
     threads: 1
@@ -13,8 +15,6 @@ rule InsertSize:
         runtime=24 * 60,
         nodes=1,
         tmpdir=scratch_dir,
-    log:
-        logdir / "picard/{sample}_insert_size.log",
     message:
         "Collecting insert size metrics"
     shell:

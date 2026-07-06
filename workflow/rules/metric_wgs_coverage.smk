@@ -1,20 +1,20 @@
 rule coveragePlot:
     input:
         bam=wrkdir / "alignments" / "{sample}_dedup.recall.sorted.bam",
-    params:
-        binsize=50,
     output:
         plot=wrkdir / "metrics" / "{sample}_coverage.png",
+    log:
+        logdir / "coveragePlot/{sample}.log",
+    conda:
+        "../envs/coveragePlot.yaml"
     threads: 20
     resources:
         mem_mb=60000,
         runtime=24 * 60,
         nodes=1,
         tmpdir=scratch_dir,
-    conda:
-        "../envs/coveragePlot.yaml"
-    log:
-        logdir / "coveragePlot/{sample}.log",
+    params:
+        binsize=50,
     message:
         "Plotting Whole Genome coverage"
     script:
